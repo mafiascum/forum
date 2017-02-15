@@ -80,7 +80,4 @@ In general, your setup must:
 - Include imagemagic and libpng-dev (Or equivalent)
 
 ## Adding Config
-As it is unlikely you can easily pass on environment variables to the PHP process you will likely edit the config file. If you do so make sure not to commit your changes. The following command will tell git to ignore your local changes to the file:
-```bash
-git update-index --assume-unchanged config.php
-```
+Simply add a `config.php` in this directory (It won't be committed, as it is in the `.gitignore`). See `config.php.docker` for an example.
