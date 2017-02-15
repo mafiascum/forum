@@ -136,6 +136,7 @@ var siteChat = (function() {
 		+		'<div class="chatWindowOuter">'
 		+			'<div class="chatWindowInner">'
 		+				'<div class="title"><div class="name">{{#if isUser}}<span id="span{{idPrefix}}{{uniqueIdentifier}}" class="onlineindicator titlemarker {{activeClass}}"></span> {{/if}}{{title}}</div><div class="options"></div><div class="close">X</div></div>'
+		+				'<div class="title"><div class="name">{{#if isUser}}<span id="span{{idPrefix}}{{uniqueIdentifier}}" class="onlineindicator titlemarker {{activeClass}}" data-recipient-user-id="{{recipientUserId}}"></span> {{/if}}{{title}}</div><div class="options"></div><div class="close">X</div></div>'
 		+				'<div class="menu"><ul></ul></div>'
 		+				'<div class="outputBuffer">'
 		+					'<a href="#" class="loadMore">Load More Messages</a>'
@@ -632,6 +633,12 @@ var siteChat = (function() {
 			active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000 / 60) < (5) : false;
 		}
 
+		var online = false;
+		for(var i=0;i<siteChat.onlineUserIdSet.length;i++){
+			if(siteChat.onlineUserIdSet[i]===siteChat.recipientUserId)
+				online=true;
+		}
+
 		$("#chatPanel").append(this.chatWindowTemplate({
 			idPrefix: chatWindowIdPrefix,
 			isUser: isUser,
@@ -640,7 +647,7 @@ var siteChat = (function() {
 			conversationId: conversationId,
 			recipientUserId: recipientUserId,
 			key: chatWindowIdPrefix + chatWindowUniqueIdentifier,
-			activeClass : active ? "active" : "idle"
+			activeClass : online ? (active ? "active" : "idle") : "offline"
 		}));
 
 		var $chatWindow = $("#chat" + chatWindowIdPrefix + chatWindowUniqueIdentifier);
@@ -901,7 +908,7 @@ var siteChat = (function() {
 
 		if(!onlyAddToHTML)
 			siteChat.setLocalStorage("onlineUserIdSet", JSON.stringify(siteChat.onlineUserIdSet));
-		siteChat.onlineUsers += 1;
+		siteChat.onlineUsers = siteChat.onlineUserIdSet.length;
 		$('#onlinelisttitle .usercount').html('(' + siteChat.onlineUsers + ')');
 		
 		siteChat.adjustElementColorAll();
@@ -1287,15 +1294,34 @@ var siteChat = (function() {
 				siteChat.saveUser(siteChatUser, false);
 
 				$(".titlemarker").each(function(i) {
-					var father = this.closest("#chatP"+siteChatUser.id);
+					var id = $(this).attr('data-recipient-user-id');
+					var father = this.closest("#chatP"+id);
+					var user = siteChat.userMap[id];
 					if(father!=null){
-						var active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000) < (60) * (5) : false;
-						if(active){
-							$("#spanP"+siteChatUser.id).removeClass('idle');
-							$("#spanP"+siteChatUser.id).addClass('active');
+						var active = user.lastActivityDatetime ? ((new Date().getTime() - user.lastActivityDatetime) / 1000) < (60) * (5) : false;
+						var online = false;
+
+						for(var i =0;i<siteChat.onlineUserIdSet.length;i++){
+							if(siteChat.onlineUserIdSet[i] === user.id){
+								online = true;
+								alert("found "+user.id);
+							}
+						}
+						
+						if(!online){
+							$("#spanP"+user.id).removeClass('idle');
+							$("#spanP"+user.id).removeClass('active');
+							$("#spanP"+user.id).addClass('offline');
 						} else{
-							$("#spanP"+siteChatUser.id).removeClass('active');
-							$("#spanP"+siteChatUser.id).addClass('idle');
+							if(active){
+								$("#spanP"+user.id).removeClass('idle');
+								$("#spanP"+user.id).removeClass('offline');
+								$("#spanP"+user.id).addClass('active');
+							} else{
+								$("#spanP"+user.id).removeClass('active');
+								$("#spanP"+user.id).removeClass('offline');
+								$("#spanP"+user.id).addClass('idle');
+							}
 						}
 					}
 				});
