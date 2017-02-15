@@ -635,7 +635,9 @@ var siteChat = (function() {
 		var online = false;
 		
 		if(isUser) {
-			var siteChatUser= siteChat.userMap[recipientUserId];
+			var siteChatUser = siteChat.userMap[recipientUserId];
+			
+			active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000 / 60) < (5) : false;
 			online = siteChat.isUserOnline(siteChatUser.id);
 		}
 
