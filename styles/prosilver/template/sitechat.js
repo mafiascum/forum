@@ -135,7 +135,6 @@ var siteChat = (function() {
 		'<div class="chatWindow conversation expanded" data-key="{{key}}" {{#if conversationId}}data-conversation-id="{{conversationId}}" {{/if}} {{#if recipientUserId}}data-recipient-user-id="{{recipientUserId}}" {{/if}} id="chat{{idPrefix}}{{uniqueIdentifier}}">'
 		+		'<div class="chatWindowOuter">'
 		+			'<div class="chatWindowInner">'
-		+				'<div class="title"><div class="name">{{#if isUser}}<span id="span{{idPrefix}}{{uniqueIdentifier}}" class="onlineindicator titlemarker {{activeClass}}"></span> {{/if}}{{title}}</div><div class="options"></div><div class="close">X</div></div>'
 		+				'<div class="title"><div class="name">{{#if isUser}}<span id="span{{idPrefix}}{{uniqueIdentifier}}" class="onlineindicator titlemarker {{activeClass}}" data-recipient-user-id="{{recipientUserId}}"></span> {{/if}}{{title}}</div><div class="options"></div><div class="close">X</div></div>'
 		+				'<div class="menu"><ul></ul></div>'
 		+				'<div class="outputBuffer">'
