@@ -1303,7 +1303,6 @@ var siteChat = (function() {
 						for(var i =0;i<siteChat.onlineUserIdSet.length;i++){
 							if(siteChat.onlineUserIdSet[i] === user.id){
 								online = true;
-								alert("found "+user.id);
 							}
 						}
 						
