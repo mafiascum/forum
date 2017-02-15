@@ -8,6 +8,6 @@ RUN docker-php-ext-install gd
 
 ADD . /var/www/html/
 
-RUN mkdir -p /var/www/html/forum/cache \
-  && chmod 770 /var/www/html/forum/cache \
-  && chown www-data:www-data /var/www/html/forum/cache
+RUN mkdir -p /var/www/html/cache \
+  && chmod 770 /var/www/html/cache \
+  && chown www-data:www-data /var/www/html/cache
