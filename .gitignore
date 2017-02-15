@@ -1,0 +1,7 @@
+.idea
+.DS_Store
+/config.php
+/cachebreaker.txt
+/files
+/images/avatars/upload
+/cache

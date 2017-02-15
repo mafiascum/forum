@@ -135,7 +135,7 @@ var siteChat = (function() {
 		'<div class="chatWindow conversation expanded" data-key="{{key}}" {{#if conversationId}}data-conversation-id="{{conversationId}}" {{/if}} {{#if recipientUserId}}data-recipient-user-id="{{recipientUserId}}" {{/if}} id="chat{{idPrefix}}{{uniqueIdentifier}}">'
 		+		'<div class="chatWindowOuter">'
 		+			'<div class="chatWindowInner">'
-		+				'<div class="title"><div class="name">{{#if isUser}}<span id="span{{idPrefix}}{{uniqueIdentifier}}" class="onlineindicator titlemarker {{activeClass}}"></span> {{/if}}{{title}}</div><div class="options"></div><div class="close">X</div></div>'
+		+				'<div class="title"><div class="name">{{#if isUser}}<span id="span{{idPrefix}}{{uniqueIdentifier}}" class="onlineindicator titlemarker {{activeClass}}" data-recipient-user-id="{{recipientUserId}}"></span> {{/if}}{{title}}</div><div class="options"></div><div class="close">X</div></div>'
 		+				'<div class="menu"><ul></ul></div>'
 		+				'<div class="outputBuffer">'
 		+					'<a href="#" class="loadMore">Load More Messages</a>'
@@ -382,6 +382,23 @@ var siteChat = (function() {
 			});
 		}
 
+		if (siteChat.getLocalStorage('chatGroups')) {
+			siteChat.chatGroups = JSON.parse(siteChat.getLocalStorage('chatGroups'));
+		}
+		else {
+			siteChat.chatGroups = [];
+			// load chat groups for the first time
+		}
+		if (siteChat.getLocalStorage('onlineGroup')) {
+			siteChat.onlineGroup = JSON.parse(siteChat.getLocalStorage('onlineGroup'));
+		}
+		else {
+			siteChat.onlineGroup = {
+				expanded: true
+			};
+			//load online list for the first time
+		}
+
 		//Load conversations.
 		if(siteChat.getLocalStorage("conversationIdSet")) {
 			JSON.parse(siteChat.getLocalStorage("conversationIdSet")).forEach(function (key) {
@@ -400,22 +417,6 @@ var siteChat = (function() {
 			});
 		}
 
-		if (siteChat.getLocalStorage('chatGroups')) {
-			siteChat.chatGroups = JSON.parse(siteChat.getLocalStorage('chatGroups'));
-		}
-		else {
-			siteChat.chatGroups = [];
-			// load chat groups for the first time
-		}
-		if (siteChat.getLocalStorage('onlineGroup')) {
-			siteChat.onlineGroup = JSON.parse(siteChat.getLocalStorage('onlineGroup'));
-		}
-		else {
-			siteChat.onlineGroup = {
-				expanded: true
-			};
-			//load online list for the first time
-		}
 		if(siteChat.getLocalStorage('selectedTab'))
 			siteChat.selectedTab = siteChat.getLocalStorage('selectedTab');
 		else
@@ -620,6 +621,10 @@ var siteChat = (function() {
 
 		siteChat.sendConnectMessage($(e.target).siblings(".roomName").text());
 	};
+	
+	siteChat.isUserOnline = function(userId) {
+		return siteChat.onlineUserIdSet.some(function(innerUserId) { return innerUserId == userId; });
+	};
 
 	siteChat.createChatWindow = function(conversationId, recipientUserId, createdByUserId, title, userIdSet, expanded, messages, save, blinking, width, height, authCode, focus) {
 
@@ -627,9 +632,11 @@ var siteChat = (function() {
 		var isUser = (conversationId != null ? false : true);
 		var chatWindowUniqueIdentifier = (conversationId != null ? conversationId : recipientUserId);
 		var active = false;
-		if(isUser){
+		var online = false;
+		
+		if(isUser) {
 			var siteChatUser= siteChat.userMap[recipientUserId];
-			active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000 / 60) < (1) : false;
+			online = siteChat.isUserOnline(siteChatUser.id);
 		}
 
 		$("#chatPanel").append(this.chatWindowTemplate({
@@ -640,7 +647,7 @@ var siteChat = (function() {
 			conversationId: conversationId,
 			recipientUserId: recipientUserId,
 			key: chatWindowIdPrefix + chatWindowUniqueIdentifier,
-			activeClass : active ? "active" : "idle"
+			activeClass : online ? (active ? "active" : "idle") : "offline"
 		}));
 
 		var $chatWindow = $("#chat" + chatWindowIdPrefix + chatWindowUniqueIdentifier);
@@ -873,7 +880,7 @@ var siteChat = (function() {
 			return;
 		}
 
-		var active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000) < (60) * (1) : false;
+		var active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000) < (60) * (5) : false;
 		var invisible = siteChat.invisibleUsers.hasOwnProperty(siteChatUser.id);
 
 		var userSpanClasses = ["dynamic-color"];
@@ -888,22 +895,20 @@ var siteChat = (function() {
 		
 		if(indexToInsert >= siteChat.onlineUserIdSet.length) {
 			$("#onlinelist").append($userDomElement);
-			if(!onlyAddToHTML)
-				siteChat.onlineUserIdSet.push(siteChatUser.id);
+			siteChat.onlineUserIdSet.push(siteChatUser.id);
 		}
 		else {
 			$("#username" + siteChat.onlineUserIdSet[indexToInsert]).before($userDomElement);
-			if(!onlyAddToHTML)
-				siteChat.onlineUserIdSet.splice(indexToInsert, 0, siteChatUser.id);
+			siteChat.onlineUserIdSet.splice(indexToInsert, 0, siteChatUser.id);
 		}
 
 		$("#username" + siteChatUser.id).data("username", siteChatUser.name).data("user-id", siteChatUser.id);
 
 		if(!onlyAddToHTML)
 			siteChat.setLocalStorage("onlineUserIdSet", JSON.stringify(siteChat.onlineUserIdSet));
-		siteChat.onlineUsers += 1;
+		siteChat.onlineUsers = siteChat.onlineUserIdSet.length;
 		$('#onlinelisttitle .usercount').html('(' + siteChat.onlineUsers + ')');
-		
+
 		siteChat.adjustElementColorAll();
 	};
 
@@ -968,7 +973,7 @@ var siteChat = (function() {
 				roomName: room.name,
 				numberOfUsers: room.userIdSet.length,
 				users: roomUsers.map(function(siteChatUser) {
-					var active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000 / 60) < (1) : false;
+					var active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000 / 60) < (5) : false;
 
 					return {
 						roomNameCleaned: room.name.replace(/[^A-Za-z0-9]/g, ''),
@@ -1287,15 +1292,28 @@ var siteChat = (function() {
 				siteChat.saveUser(siteChatUser, false);
 
 				$(".titlemarker").each(function(i) {
-					var father = this.closest("#chatP"+siteChatUser.id);
+					var id = $(this).attr('data-recipient-user-id');
+					var father = this.closest("#chatP"+id);
+					var user = siteChat.userMap[id];
 					if(father!=null){
-						var active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000) < (60) * (1) : false;
-						if(active){
-							$("#spanP"+siteChatUser.id).removeClass('idle');
-							$("#spanP"+siteChatUser.id).addClass('active');
-						} else{
-							$("#spanP"+siteChatUser.id).removeClass('active');
-							$("#spanP"+siteChatUser.id).addClass('idle');
+						var active = user.lastActivityDatetime ? ((new Date().getTime() - user.lastActivityDatetime) / 1000) < (60) * (5) : false;
+						var online = siteChat.isUserOnline(user.id);
+						var $userIdOnlineSpan = $("#spanP" + user.id);
+
+						if(!online) {
+							$userIdOnlineSpan.removeClass('idle');
+							$userIdOnlineSpan.removeClass('active');
+							$userIdOnlineSpan.addClass('offline');
+						}
+						else if(active) {
+							$userIdOnlineSpan.removeClass('idle');
+							$userIdOnlineSpan.removeClass('offline');
+							$userIdOnlineSpan.addClass('active');
+						}
+						else {
+							$userIdOnlineSpan.removeClass('active');
+							$userIdOnlineSpan.removeClass('offline');
+							$userIdOnlineSpan.addClass('idle');
 						}
 					}
 				});
