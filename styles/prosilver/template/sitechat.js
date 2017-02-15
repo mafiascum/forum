@@ -382,6 +382,23 @@ var siteChat = (function() {
 			});
 		}
 
+		if (siteChat.getLocalStorage('chatGroups')) {
+			siteChat.chatGroups = JSON.parse(siteChat.getLocalStorage('chatGroups'));
+		}
+		else {
+			siteChat.chatGroups = [];
+			// load chat groups for the first time
+		}
+		if (siteChat.getLocalStorage('onlineGroup')) {
+			siteChat.onlineGroup = JSON.parse(siteChat.getLocalStorage('onlineGroup'));
+		}
+		else {
+			siteChat.onlineGroup = {
+				expanded: true
+			};
+			//load online list for the first time
+		}
+
 		//Load conversations.
 		if(siteChat.getLocalStorage("conversationIdSet")) {
 			JSON.parse(siteChat.getLocalStorage("conversationIdSet")).forEach(function (key) {
@@ -400,22 +417,6 @@ var siteChat = (function() {
 			});
 		}
 
-		if (siteChat.getLocalStorage('chatGroups')) {
-			siteChat.chatGroups = JSON.parse(siteChat.getLocalStorage('chatGroups'));
-		}
-		else {
-			siteChat.chatGroups = [];
-			// load chat groups for the first time
-		}
-		if (siteChat.getLocalStorage('onlineGroup')) {
-			siteChat.onlineGroup = JSON.parse(siteChat.getLocalStorage('onlineGroup'));
-		}
-		else {
-			siteChat.onlineGroup = {
-				expanded: true
-			};
-			//load online list for the first time
-		}
 		if(siteChat.getLocalStorage('selectedTab'))
 			siteChat.selectedTab = siteChat.getLocalStorage('selectedTab');
 		else
@@ -627,17 +628,15 @@ var siteChat = (function() {
 		var isUser = (conversationId != null ? false : true);
 		var chatWindowUniqueIdentifier = (conversationId != null ? conversationId : recipientUserId);
 		var active = false;
+		var online = false;
 		if(isUser){
 			var siteChatUser= siteChat.userMap[recipientUserId];
 			active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000 / 60) < (5) : false;
+			for(var i=0;i<siteChat.onlineUserIdSet.length;i++){
+				if(siteChat.onlineUserIdSet[i]===siteChatUser.id)
+					online=true;
+			}
 		}
-
-		var online = false;
-		for(var i=0;i<siteChat.onlineUserIdSet.length;i++){
-			if(siteChat.onlineUserIdSet[i]===siteChat.recipientUserId)
-				online=true;
-		}
-
 		$("#chatPanel").append(this.chatWindowTemplate({
 			idPrefix: chatWindowIdPrefix,
 			isUser: isUser,
@@ -894,13 +893,11 @@ var siteChat = (function() {
 		
 		if(indexToInsert >= siteChat.onlineUserIdSet.length) {
 			$("#onlinelist").append($userDomElement);
-			if(!onlyAddToHTML)
-				siteChat.onlineUserIdSet.push(siteChatUser.id);
+			siteChat.onlineUserIdSet.push(siteChatUser.id);
 		}
 		else {
 			$("#username" + siteChat.onlineUserIdSet[indexToInsert]).before($userDomElement);
-			if(!onlyAddToHTML)
-				siteChat.onlineUserIdSet.splice(indexToInsert, 0, siteChatUser.id);
+			siteChat.onlineUserIdSet.splice(indexToInsert, 0, siteChatUser.id);
 		}
 
 		$("#username" + siteChatUser.id).data("username", siteChatUser.name).data("user-id", siteChatUser.id);
@@ -909,7 +906,7 @@ var siteChat = (function() {
 			siteChat.setLocalStorage("onlineUserIdSet", JSON.stringify(siteChat.onlineUserIdSet));
 		siteChat.onlineUsers = siteChat.onlineUserIdSet.length;
 		$('#onlinelisttitle .usercount').html('(' + siteChat.onlineUsers + ')');
-		
+
 		siteChat.adjustElementColorAll();
 	};
 
