@@ -32,6 +32,9 @@ var siteChat = (function() {
 		'"': '&quot;',
 		"'": '&#39;',
 		"/": '&#x2F;'
+
+		//Needs to resolve conflicts with ;) emoji
+		//If this section was changed - apply it in resolveEmoji() as well
 	};
 
 	function escapeHtml(string) {
@@ -273,6 +276,12 @@ var siteChat = (function() {
 
 	siteChat.parseEmoji = function(message) {
 		return message
+		//escape
+			.replace(/&apos;/g,"_&apos;_")
+			.replace(/&quot;/g,"_&quot;_")
+			.replace(/&amp;/g,"_&amp;_")
+			.replace(/&gt;/g,"_&gt;_")
+			.replace(/&lt;/g,"_&lt;_")
 		//emojis
 		//First the more complicated ones:
 			.replace(/:lol:/g, "<img src=\"./images/smilies/icon_lol2.gif\" title=\"Laughing\" alt=\":lol:\">")
@@ -318,6 +327,11 @@ var siteChat = (function() {
 		//Conflict fixes
 			.replace(/:_oops_:/g, ":oops:") ////conflict of alt in :oops: with :o
 			.replace(/:_\?_:/g, ":?:")  //conflict of alt in :?: with :?
+			.replace(/_&apos;_/g, "&apos;") //' escape HTML
+			.replace(/_&quot;_/g, "&quot;") //" escape HTML
+			.replace(/_&amp;_/g, "&amp;") //& escape HTML
+			.replace(/_&gt;_/g, "&gt;") //> escape HTML
+			.replace(/_&lt;_/g, "&lt;") //< escape HTML
 	};
 
 	siteChat.parseBBCode = function(message) {
