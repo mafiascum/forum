@@ -138,7 +138,7 @@ var siteChat = (function() {
 		'<div class="chatWindow conversation expanded" data-key="{{key}}" {{#if conversationId}}data-conversation-id="{{conversationId}}" {{/if}} {{#if recipientUserId}}data-recipient-user-id="{{recipientUserId}}" {{/if}} id="chat{{idPrefix}}{{uniqueIdentifier}}">'
 		+		'<div class="chatWindowOuter">'
 		+			'<div class="chatWindowInner">'
-		+				'<div class="title"><div class="name">{{#if isUser}}<span id="span{{idPrefix}}{{uniqueIdentifier}}" class="onlineindicator titlemarker {{activeClass}}" data-recipient-user-id="{{recipientUserId}}"></span> {{/if}}{{title}}</div><div class="options"></div><div class="close">X</div></div>'
+		+				'<div class="title"><div class="name dynamic-color" {{#if isUser}}style="{{userColor}}"{{/if}}>{{#if isUser}}<span id="span{{idPrefix}}{{uniqueIdentifier}}" class="onlineindicator titlemarker {{activeClass}}" data-recipient-user-id="{{recipientUserId}}"></span> {{/if}}{{title}}</div><div class="options"></div><div class="close">X</div></div>'
 		+				'<div class="menu"><ul></ul></div>'
 		+				'<div class="outputBuffer">'
 		+					'<a href="#" class="loadMore">Load More Messages</a>'
@@ -650,6 +650,7 @@ var siteChat = (function() {
 		
 		if(isUser) {
 			var siteChatUser = siteChat.userMap[recipientUserId];
+			var userColor = siteChat.getUserColorStyle(siteChatUser);
 			
 			active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000 / 60) < (5) : false;
 			online = siteChat.isUserOnline(siteChatUser.id);
@@ -663,7 +664,8 @@ var siteChat = (function() {
 			conversationId: conversationId,
 			recipientUserId: recipientUserId,
 			key: chatWindowIdPrefix + chatWindowUniqueIdentifier,
-			activeClass : online ? (active ? "active" : "idle") : "offline"
+			activeClass : online ? (active ? "active" : "idle") : "offline" ,
+			userColor : userColor
 		}));
 
 		var $chatWindow = $("#chat" + chatWindowIdPrefix + chatWindowUniqueIdentifier);
