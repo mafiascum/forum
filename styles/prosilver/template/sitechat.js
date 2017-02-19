@@ -635,6 +635,10 @@ var siteChat = (function() {
 
 		siteChat.sendConnectMessage($(e.target).siblings(".roomName").text());
 	};
+	
+	siteChat.isUserOnline = function(userId) {
+		return siteChat.onlineUserIdSet.some(function(innerUserId) { return innerUserId == userId; });
+	};
 
 	siteChat.createChatWindow = function(conversationId, recipientUserId, createdByUserId, title, userIdSet, expanded, messages, save, blinking, width, height, authCode, focus) {
 
@@ -643,14 +647,14 @@ var siteChat = (function() {
 		var chatWindowUniqueIdentifier = (conversationId != null ? conversationId : recipientUserId);
 		var active = false;
 		var online = false;
-		if(isUser){
-			var siteChatUser= siteChat.userMap[recipientUserId];
+		
+		if(isUser) {
+			var siteChatUser = siteChat.userMap[recipientUserId];
+			
 			active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000 / 60) < (5) : false;
-			for(var i=0;i<siteChat.onlineUserIdSet.length;i++){
-				if(siteChat.onlineUserIdSet[i]===siteChatUser.id)
-					online=true;
-			}
+			online = siteChat.isUserOnline(siteChatUser.id);
 		}
+
 		$("#chatPanel").append(this.chatWindowTemplate({
 			idPrefix: chatWindowIdPrefix,
 			isUser: isUser,
@@ -1309,28 +1313,23 @@ var siteChat = (function() {
 					var user = siteChat.userMap[id];
 					if(father!=null){
 						var active = user.lastActivityDatetime ? ((new Date().getTime() - user.lastActivityDatetime) / 1000) < (60) * (5) : false;
-						var online = false;
+						var online = siteChat.isUserOnline(user.id);
+						var $userIdOnlineSpan = $("#spanP" + user.id);
 
-						for(var i =0;i<siteChat.onlineUserIdSet.length;i++){
-							if(siteChat.onlineUserIdSet[i] === user.id){
-								online = true;
-							}
+						if(!online) {
+							$userIdOnlineSpan.removeClass('idle');
+							$userIdOnlineSpan.removeClass('active');
+							$userIdOnlineSpan.addClass('offline');
 						}
-						
-						if(!online){
-							$("#spanP"+user.id).removeClass('idle');
-							$("#spanP"+user.id).removeClass('active');
-							$("#spanP"+user.id).addClass('offline');
-						} else{
-							if(active){
-								$("#spanP"+user.id).removeClass('idle');
-								$("#spanP"+user.id).removeClass('offline');
-								$("#spanP"+user.id).addClass('active');
-							} else{
-								$("#spanP"+user.id).removeClass('active');
-								$("#spanP"+user.id).removeClass('offline');
-								$("#spanP"+user.id).addClass('idle');
-							}
+						else if(active) {
+							$userIdOnlineSpan.removeClass('idle');
+							$userIdOnlineSpan.removeClass('offline');
+							$userIdOnlineSpan.addClass('active');
+						}
+						else {
+							$userIdOnlineSpan.removeClass('active');
+							$userIdOnlineSpan.removeClass('offline');
+							$userIdOnlineSpan.addClass('idle');
 						}
 					}
 				});
