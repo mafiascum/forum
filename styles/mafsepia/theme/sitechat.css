@@ -65,19 +65,19 @@
 
 .chatWindow.expanded .title
 {
-	background-color: #E8DDC7;
+	background-color: #f5f1eb;
 	font-weight: bold;
 	padding: 5px;
 }
 
 .chatWindow.expanded .title:hover
 {
-	background-color: #E2D3BE;
+	background-color: #E8DDC7;
 }
 
 .chatWindow.collapsed .title
 {
-	background-color: #E2D3BE;
+	background-color: #f5f1eb;
 }
 
 .chatWindow.collapsed .title:hover
