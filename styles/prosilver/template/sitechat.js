@@ -97,11 +97,15 @@ var siteChat = (function() {
 	siteChat.namespace = "ms_sc2_";//Prepended to all local storage variables.
 	siteChat.attemptReconnectIntervalId = null;
 	siteChat.onlineUserIdSet = [];
+	siteChat.activeUserIdSet = [];
+	siteChat.idleUserIdSet = [];
 	siteChat.MAX_MESSAGES_PER_WINDOW = 30;
 	siteChat.MAX_MESSAGE_LENGTH = 255;
 	siteChat.unloading = false;
 	siteChat.firstConnectionThisPageLoad = true;
 	siteChat.onlineUsers = 0;
+	siteChat.activeUsers = 0;
+	siteChat.idleUsers = 0;
 	siteChat.attemptingLogin = false;
 	siteChat.dragWindow = null;
 	siteChat.commandHandlers = {};
@@ -115,7 +119,7 @@ var siteChat = (function() {
 		+		'<div class="roomtitle">'
 		+		'<span class="expand-icon">{{expandIcon}}</span>'
 		+		'<span class="roomName">{{roomName}}</span>'
-		+		'<span class="usercount">({{numberOfUsers}})</span>'
+		+		' <span class="usercount">({{numberOfUsers}})</span>'
 		+		'<a href="#" class="joinroom">Join Room</a>'
 		+	'</div>'
 		+	'<div class="userlist" {{#if collapsed}}style="display:none;"{{/if}}>'
@@ -138,7 +142,7 @@ var siteChat = (function() {
 		'<div class="chatWindow conversation expanded" data-key="{{key}}" {{#if conversationId}}data-conversation-id="{{conversationId}}" {{/if}} {{#if recipientUserId}}data-recipient-user-id="{{recipientUserId}}" {{/if}} id="chat{{idPrefix}}{{uniqueIdentifier}}">'
 		+		'<div class="chatWindowOuter">'
 		+			'<div class="chatWindowInner">'
-		+				'<div class="title"><div class="name">{{#if isUser}}<span id="span{{idPrefix}}{{uniqueIdentifier}}" class="onlineindicator titlemarker {{activeClass}}" data-recipient-user-id="{{recipientUserId}}"></span> {{/if}}{{title}}</div><div class="options"></div><div class="close">X</div></div>'
+		+				'<div class="title"><div class="name dynamic-color" {{#if isUser}}style="{{userColor}}"{{/if}}>{{#if isUser}}<span id="span{{idPrefix}}{{uniqueIdentifier}}" class="onlineindicator titlemarker {{activeClass}}" data-recipient-user-id="{{recipientUserId}}"></span> {{/if}}{{title}}</div><div class="options"></div><div class="close">X</div></div>'
 		+				'<div class="menu"><ul></ul></div>'
 		+				'<div class="outputBuffer">'
 		+					'<a href="#" class="loadMore">Load More Messages</a>'
@@ -165,6 +169,8 @@ var siteChat = (function() {
 		+	'			<div id="onlinelistcontainer">'
 		+	'				<p id="onlinelisttitle"><span class="expand-icon">-</span>Online Users <span class="usercount">(0)</span></p>'
 		+	'				<ul id="onlinelist"></ul>'
+		+	'				<ul id="activelist" class="listInvisible"></ul>'
+		+	'				<ul id="idlelist" class="listInvisible"></ul>'
 		+	'			</div>'
 		+	'		</div>'
 		+	'		<div id="utilitywindow-2" class="tab_content">'
@@ -179,6 +185,10 @@ var siteChat = (function() {
 		+	'					<li><label for="settingsInvisible">Hide Online Status:</label> <input type="checkbox" id="settingsInvisible" name="invisible" {{#if invisible}}checked{{/if}}/></li>'
         +	'					<li><label for="settingsEmoji">Disable Smilies:</label> <input type="checkbox" id="settingsEmoji" name="emoji" {{#if emoji}}checked{{/if}}/></li>'
 		+	'					<li><label for="settingsTimestamp">Timestamp:</label> <input type="text" id="settingsTimestamp" name="timestamp" value="{{timestamp}}"/></li>'
+		+	'					<li><label for="sortOption">Sort Users By:</label> <select id="sortOption" name="sort">'
+  		+	'						<option value="alphabetSort" {{#if alphabetSort}}selected{{/if}}>Usernames</option>'
+  		+	'						<option value="activitySort" {{#if activitySort}}selected{{/if}}>Activity</option>'
+		+	'					</select></li>'
 		+	'					<li><button type="button" id="saveSettings">Save Settings</button> <button type="button" id="disableChat">Disable Chat</button></li>'
 		+	'				</ul>'
 		+	'			</form>'
@@ -650,6 +660,7 @@ var siteChat = (function() {
 		
 		if(isUser) {
 			var siteChatUser = siteChat.userMap[recipientUserId];
+			var userColor = siteChat.getUserColorStyle(siteChatUser);
 			
 			active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000 / 60) < (5) : false;
 			online = siteChat.isUserOnline(siteChatUser.id);
@@ -663,7 +674,8 @@ var siteChat = (function() {
 			conversationId: conversationId,
 			recipientUserId: recipientUserId,
 			key: chatWindowIdPrefix + chatWindowUniqueIdentifier,
-			activeClass : online ? (active ? "active" : "idle") : "offline"
+			activeClass : online ? (active ? "active" : "idle") : "offline" ,
+			userColor : userColor
 		}));
 
 		var $chatWindow = $("#chat" + chatWindowIdPrefix + chatWindowUniqueIdentifier);
@@ -891,12 +903,15 @@ var siteChat = (function() {
 	};
 
 	siteChat.addUserToOnlineList = function(siteChatUser, onlyAddToHTML) {
-		var indexToInsert = _.sortedIndex(siteChat.onlineUserIdSet, siteChatUser.id, function(userId) { return siteChat.userMap[ userId ].name.toLowerCase() });
-		if(indexToInsert < siteChat.onlineUserIdSet.length && siteChat.onlineUserIdSet[ indexToInsert ] == siteChatUser.id) {
+		var indexToInsertOnline = _.sortedIndex(siteChat.onlineUserIdSet, siteChatUser.id, function(userId) { return siteChat.userMap[ userId ].name.toLowerCase() });
+		if(indexToInsertOnline < siteChat.onlineUserIdSet.length && siteChat.onlineUserIdSet[ indexToInsertOnline ] == siteChatUser.id) {
 			return;
-		}
+		} //user is already added
 
-		var active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000) < (60) * (5) : false;
+		var indexToInsertActive = _.sortedIndex(siteChat.activeUserIdSet, siteChatUser.id, function(userId) { return siteChat.userMap[ userId ].name.toLowerCase() });
+		var indexToInsertIdle = _.sortedIndex(siteChat.idleUserIdSet, siteChatUser.id, function(userId) { return siteChat.userMap[ userId ].name.toLowerCase() });
+
+		var active = active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000 / 60) < (5) : false;
 		var invisible = siteChat.invisibleUsers.hasOwnProperty(siteChatUser.id);
 
 		var userSpanClasses = ["dynamic-color"];
@@ -908,17 +923,65 @@ var siteChat = (function() {
 			+ '<span class="' + userSpanClasses.join(" ") + '" style="' + siteChat.getUserColorStyle(siteChatUser) + '">' + siteChatUser.name + '</span>'
 			+ '</li>';
 		var $userDomElement = $(html);
-		
-		if(indexToInsert >= siteChat.onlineUserIdSet.length) {
-			$("#onlinelist").append($userDomElement);
+
+		//alert("here");
+		if(indexToInsertOnline >= siteChat.onlineUserIdSet.length) {
 			siteChat.onlineUserIdSet.push(siteChatUser.id);
+			$("#onlinelist").append($userDomElement);
 		}
 		else {
-			$("#username" + siteChat.onlineUserIdSet[indexToInsert]).before($userDomElement);
-			siteChat.onlineUserIdSet.splice(indexToInsert, 0, siteChatUser.id);
+			$("#username" + siteChat.onlineUserIdSet[indexToInsertOnline]).before($userOnlineDomElement);
+			siteChat.onlineUserIdSet.splice(indexToInsertOnline, 0, siteChatUser.id);
 		}
 
+		htmlActive
+			= '<li class="sc-user-window-init username" id="active-username' + siteChatUser.id + '"><span class="onlineindicator ' + (active ? "active" : "idle") + '"></span>'
+			+ '<span class="' + userSpanClasses.join(" ") + '" style="' + siteChat.getUserColorStyle(siteChatUser) + '">' + siteChatUser.name + '</span>'
+			+ '</li>';
+		var $userActiveDomElement = $(htmlActive);
+
+		htmlIdle
+			= '<li class="sc-user-window-init username" id="idle-username' + siteChatUser.id + '"><span class="onlineindicator ' + (active ? "active" : "idle") + '"></span>'
+			+ '<span class="' + userSpanClasses.join(" ") + '" style="' + siteChat.getUserColorStyle(siteChatUser) + '">' + siteChatUser.name + '</span>'
+			+ '</li>';
+		var $userIdleDomElement = $(htmlIdle);
+
+		if(active){
+			if(indexToInsertActive >= siteChat.activeUserIdSet.length) {
+				siteChat.activeUserIdSet.push(siteChatUser.id);
+				$("#activelist").append($userActiveDomElement);
+			}
+			else {
+				$("#active-username" + siteChat.activeUserIdSet[indexToInsertActive]).before($userActiveDomElement);
+				siteChat.activeUserIdSet.splice(indexToInsertActive, 0, siteChatUser.id);
+			}
+		} else {
+			if(indexToInsertIdle >= siteChat.activeUserIdSet.length) {
+				siteChat.idleUserIdSet.push(siteChatUser.id);
+				$("#idlelist").append($userIdleDomElement);
+			}
+			else {
+				$("#idle-username" + siteChat.idleUserIdSet[indexToInsertIdle]).before($userIdleDomElement);
+				siteChat.idleUserIdSet.splice(indexToInsertIdle, 0, siteChatUser.id);
+			}
+		}
+
+		if(siteChat.settings.sort == 0){  //alphabetic sort
+			$("#onlinelist").removeClass("listInvisible");
+			$("#activelist").addClass("listInvisible");
+			$("#idlelist").addClass("listInvisible");
+		} else if(siteChat.settings.sort == 1){ //activity sort
+			$("#onlinelist").addClass("listInvisible");
+			$("#activelist").removeClass("listInvisible");
+			$("#idlelist").removeClass("listInvisible");
+		}
+
+		if(!active)
+			siteChat.activeUsers ++;
+
 		$("#username" + siteChatUser.id).data("username", siteChatUser.name).data("user-id", siteChatUser.id);
+		$("#active-username" + siteChatUser.id).data("username", siteChatUser.name).data("user-id", siteChatUser.id);
+		$("#idle-username" + siteChatUser.id).data("username", siteChatUser.name).data("user-id", siteChatUser.id);
 
 		if(!onlyAddToHTML)
 			siteChat.setLocalStorage("onlineUserIdSet", JSON.stringify(siteChat.onlineUserIdSet));
@@ -979,7 +1042,19 @@ var siteChat = (function() {
 			
 			var roomUsers = room.userIdSet.map(function(userId) { return siteChat.userMap[userId]; });
 			roomUsers.sort(function(u1, u2) {
-				return u1.name.toLowerCase().localeCompare(u2.name.toLowerCase());
+				if(sitechat.settings.sort==0){  //sort based on alphabet
+					return u1.name.toLowerCase().localeCompare(u2.name.toLowerCase());
+				} else if(siteChat.settings.sort==1){
+					var alphabetSort = u1.name.toLowerCase().localeCompare(u2.name.toLowerCase());
+					var u1Active = u1.lastActivityDatetime ? ((new Date().getTime() - u1.lastActivityDatetime) / 1000 / 60) < (5) : false;
+					var u2Active = u2.lastActivityDatetime ? ((new Date().getTime() - u2.lastActivityDatetime) / 1000 / 60) < (5) : false;
+
+					if(u1Active!=u2Active){
+						return u1Active ? -1 : 1;
+					} else{
+						return alphabetSort;
+					}
+				}
 			});
 
 			$("#roomstab").append(siteChat.roomListRoomTemplate({
@@ -1054,6 +1129,8 @@ var siteChat = (function() {
 			animateAvatars: siteChat.settings.animateAvatars,
 			invisible: siteChat.settings.invisible,
 			emoji: siteChat.settings.emoji,
+			alphabetSort : siteChat.settings.sort == 0 ? true : false,
+			activitySort : siteChat.settings.sort == 1 ? true : false,
 			timestamp: siteChat.settings.timestamp
 		}));
 
@@ -1099,6 +1176,21 @@ var siteChat = (function() {
 
 		siteChat.settings.emoji = tempemoji;
 
+		var sortOption = document.getElementById("sortOption");
+		siteChat.settings.sort = 0;
+		if(sortOption.value == "activitySort")
+			siteChat.settings.sort = 1;
+
+		if(siteChat.settings.sort == 0){  //alphabetic sort
+			$("#onlinelist").removeClass("listInvisible");
+			$("#activelist").addClass("listInvisible");
+			$("#idlelist").addClass("listInvisible");
+		} else if(siteChat.settings.sort == 1){ //activity sort
+			$("#onlinelist").addClass("listInvisible");
+			$("#activelist").removeClass("listInvisible");
+			$("#idlelist").removeClass("listInvisible");
+		}
+
 		siteChat.setPanelCompact(siteChat.settings.compact);
 		siteChat.setSettings(siteChat.settings);
 		siteChat.updateCachedSettings(siteChat.settings);
@@ -1123,6 +1215,8 @@ var siteChat = (function() {
 		siteChat.generateRooms(false);
 		if (siteChat.onlineGroup.expanded == false) {
 			$('#onlinelist').css('display','none');
+			$('#activelist').css('display','none');
+			$('#idlelist').css('display','none');
 			$('#onlinelisttitle .expand-icon').html('+');
 		}
 		siteChat.setActiveTab(siteChat.selectedTab == null ? 0 : siteChat.selectedTab);
@@ -1140,12 +1234,16 @@ var siteChat = (function() {
 	siteChat.onlinelistexpand = function() {
 		if (siteChat.onlineGroup.expanded == false) {
 			$('#onlinelist').css('display', 'block');
+			$('#activelist').css('display','block');
+			$('#idlelist').css('display','block');
 			$('#onlinelisttitle .expand-icon').html('-');
 			siteChat.onlineGroup.expanded = true;
 			localStorage[siteChat.namespace +'onlineGroup'] = JSON.stringify(siteChat.onlineGroup);
 		}
 		else {
 			$('#onlinelist').css('display', 'none');
+			$('#activelist').css('display','none');
+			$('#idlelist').css('display','none');
 			$('#onlinelisttitle .expand-icon').html('+');
 			siteChat.onlineGroup.expanded = false;
 			localStorage[siteChat.namespace +'onlineGroup'] = JSON.stringify(siteChat.onlineGroup);
@@ -1295,10 +1393,14 @@ var siteChat = (function() {
 			var oldRooms = siteChat.rooms;
 			siteChat.onlineUsers = 0;
 			siteChat.onlineUserIdSet = [];
+			siteChat.activeUserIdSet = [];
+			siteChat.idleUserIdSet = [];
 			siteChat.rooms = {};
 			siteChat.setInvisibleUsers(siteChatPacket.invisibleUserIds);
 
 			$("#onlinelist").html("");
+			$("#activelist").html("");
+			$("#idlelist").html("");
 			$("#roomstab").html("");
 
 			//Import users.
@@ -1312,7 +1414,7 @@ var siteChat = (function() {
 					var father = this.closest("#chatP"+id);
 					var user = siteChat.userMap[id];
 					if(father!=null){
-						var active = user.lastActivityDatetime ? ((new Date().getTime() - user.lastActivityDatetime) / 1000) < (60) * (5) : false;
+						var active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000 / 60) < (5) : false;
 						var online = siteChat.isUserOnline(user.id);
 						var $userIdOnlineSpan = $("#spanP" + user.id);
 
