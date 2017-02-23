@@ -760,6 +760,10 @@ ul li.tab.active {
 	font-style:italic;
 }
 
+.listInvisible{
+	display: none !important;
+}
+
 .chatWindow.expanded .outputBuffer .loadMore
 {
 	padding:5px 0 5px 0;

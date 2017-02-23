@@ -779,3 +779,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fafafa', end
 #chatPanel.compact .chatWindow .outputBuffer .messages {
 	padding-bottom:5px;
 }
+
+.listInvisible{
+	display: none !important;
+}

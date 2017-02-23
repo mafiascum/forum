@@ -787,3 +787,7 @@ ul li.tab.active {
 #chatPanel .invisible{
 	font-style:italic;
 }
+
+.listInvisible{
+	display: none !important;
+}
