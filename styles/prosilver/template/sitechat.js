@@ -1367,7 +1367,7 @@ var siteChat = (function() {
 
 				$(".titlemarker").each(function(i) {
 					var id = $(this).attr('data-recipient-user-id');
-					var father = this.closest("#chatP"+id);
+					var father = document.getElementById("chatP"+id);
 					var user = siteChat.userMap[id];
 					if(father!=null){
 						var active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000 / 60) < (5) : false;
