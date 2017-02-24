@@ -967,6 +967,7 @@ var siteChat = (function() {
 	};
 
 	siteChat.processPendingMessages = function() {
+		alert("pending");
 		for(var index = 0;index < siteChat.pendingMessages.length;++index) {
 			var siteChatConversationMessage = siteChat.pendingMessages[ index ];
 			var siteChatUser = siteChat.userMap[ siteChatConversationMessage.userId ];
@@ -1526,9 +1527,14 @@ var siteChat = (function() {
 	}
 
 	siteChat.findIgnoreIndex = function(ignoredUserId) {
-		return siteChat.ignores.findIndex(function(ignoreEntry) {
-			return ignoreEntry.ignoredUser.id == ignoredUserId;
-		});
+		var res = -1;
+		for (var i = 0; i < siteChat.ignores.length; ++i) {
+			if (siteChat.ignores[i].ignoredUser.id == ignoredUserId) {
+				res = i;
+				break;
+			}
+		}
+		return res;
 	}
 
 	siteChat.setIgnore = function(ignoredUserId, ignoredName, remove) {
