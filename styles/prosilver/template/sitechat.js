@@ -798,6 +798,7 @@ var siteChat = (function() {
 	siteChat.renderMessage = function(siteChatConversationMessage, siteChatUser, isIgnored, isCompact, isEmoji) {
 		var messageDate = new Date(siteChatConversationMessage.createdDatetime);
 		var avatarUrl = siteChatUser.avatarUrl != '' ?  (siteChat.rootPath + '/download/file.php?avatar=' + siteChatUser.avatarUrl) : defaultAvatar;
+		console.log("TS IS BLANK: " + (siteChat.settings.timestamp == "") + ": " + (zeroFill(messageDate.getHours(), 2) + ":" + zeroFill(messageDate.getMinutes(), 2)));
 		var messageDateString = escapeHtml(siteChat.settings.timestamp == "" ? (zeroFill(messageDate.getHours(), 2) + ":" + zeroFill(messageDate.getMinutes(), 2)) : moment(messageDate).format(siteChat.settings.timestamp));
 		var shouldDelayAvatarLoad = siteChat.shouldDelayAvatarLoad(avatarUrl);
 		var imageHtml = shouldDelayAvatarLoad ? '' : siteChat.createAvatarImageHtml(avatarUrl);
@@ -914,7 +915,8 @@ var siteChat = (function() {
 		onlineList.sort(function(u1, u2) {
 			if(siteChat.settings.sort==0){  //sort based on alphabet
 				return u1.name.toLowerCase().localeCompare(u2.name.toLowerCase());
-			} else if(siteChat.settings.sort==1){
+			}
+			else if(siteChat.settings.sort==1){
 				var alphabetSort = u1.name.toLowerCase().localeCompare(u2.name.toLowerCase());
 				var u1Active = u1.lastActivityDatetime ? ((new Date().getTime() - u1.lastActivityDatetime) / 1000 / 60) < (5) : false;
 				var u2Active = u2.lastActivityDatetime ? ((new Date().getTime() - u2.lastActivityDatetime) / 1000 / 60) < (5) : false;
