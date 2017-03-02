@@ -115,7 +115,7 @@ var siteChat = (function() {
 		+		'<div class="roomtitle">'
 		+		'<span class="expand-icon">{{expandIcon}}</span>'
 		+		'<span class="roomName">{{roomName}}</span>'
-		+		'<span class="usercount">({{numberOfUsers}})</span>'
+		+		' <span class="usercount">({{numberOfUsers}})</span>'
 		+		'<a href="#" class="joinroom">Join Room</a>'
 		+	'</div>'
 		+	'<div class="userlist" {{#if collapsed}}style="display:none;"{{/if}}>'
@@ -130,6 +130,18 @@ var siteChat = (function() {
 		+	'</div>'
 	);
 
+	siteChat.onlineListTemplate = Handlebars.compile(
+		'<p id="onlinelisttitle"> Online Users <span class="usercount">({{numberOfUsers}})</span></p>'
+		+		'<ul id="onlinelist"></ul>'
+		+			'{{#each users}}'
+		+			'<li class="sc-user-window-init username dynamic-color {{#if invisible}}invisible{{/if}}" style="{{userColor}}" id="username{{userId}}" data-username="{{userName}}" data-user-id="{{userId}}">'
+		+				'<span class="onlineindicator {{activeClass}}"></span>'
+		+				'{{userName}}'
+		+			'</li>'
+		+			'{{/each}}'
+		+ 		'</li>'
+	);
+
 	siteChat.chatAnchorTemplate = Handlebars.compile(
 		'<a href="{{{url}}}" target="_blank">{{{display}}}</a>'
 	);
@@ -138,7 +150,7 @@ var siteChat = (function() {
 		'<div class="chatWindow conversation expanded" data-key="{{key}}" {{#if conversationId}}data-conversation-id="{{conversationId}}" {{/if}} {{#if recipientUserId}}data-recipient-user-id="{{recipientUserId}}" {{/if}} id="chat{{idPrefix}}{{uniqueIdentifier}}">'
 		+		'<div class="chatWindowOuter">'
 		+			'<div class="chatWindowInner">'
-		+				'<div class="title"><div class="name">{{#if isUser}}<span id="span{{idPrefix}}{{uniqueIdentifier}}" class="onlineindicator titlemarker {{activeClass}}" data-recipient-user-id="{{recipientUserId}}"></span> {{/if}}{{title}}</div><div class="options"></div><div class="close">X</div></div>'
+		+				'<div class="title"><div class="name dynamic-color" {{#if isUser}}style="{{userColor}}"{{/if}}>{{#if isUser}}<span id="span{{idPrefix}}{{uniqueIdentifier}}" class="onlineindicator titlemarker {{activeClass}}" data-recipient-user-id="{{recipientUserId}}"></span> {{/if}}{{title}}</div><div class="options"></div><div class="close">X</div></div>'
 		+				'<div class="menu"><ul></ul></div>'
 		+				'<div class="outputBuffer">'
 		+					'<a href="#" class="loadMore">Load More Messages</a>'
@@ -162,10 +174,7 @@ var siteChat = (function() {
 		+ 	' 			<div class="clear"></div>'
 		+	' 		</ul>'
 		+	'		<div id="utilitywindow-1" class="tab_content">'
-		+	'			<div id="onlinelistcontainer">'
-		+	'				<p id="onlinelisttitle"><span class="expand-icon">-</span>Online Users <span class="usercount">(0)</span></p>'
-		+	'				<ul id="onlinelist"></ul>'
-		+	'			</div>'
+		+	'			<div id="onlinelistcontainer"></div>'
 		+	'		</div>'
 		+	'		<div id="utilitywindow-2" class="tab_content">'
 		+	'		<div id="roomstab"></div>'
@@ -179,6 +188,10 @@ var siteChat = (function() {
 		+	'					<li><label for="settingsInvisible">Hide Online Status:</label> <input type="checkbox" id="settingsInvisible" name="invisible" {{#if invisible}}checked{{/if}}/></li>'
         +	'					<li><label for="settingsEmoji">Disable Smilies:</label> <input type="checkbox" id="settingsEmoji" name="emoji" {{#if emoji}}checked{{/if}}/></li>'
 		+	'					<li><label for="settingsTimestamp">Timestamp:</label> <input type="text" id="settingsTimestamp" name="timestamp" value="{{timestamp}}"/></li>'
+		+	'					<li><label for="sortOption">Sort Users By:</label> <select id="sortOption" name="sort">'
+  		+	'						<option value="alphabetSort" {{#if alphabetSort}}selected{{/if}}>Usernames</option>'
+  		+	'						<option value="activitySort" {{#if activitySort}}selected{{/if}}>Activity</option>'
+		+	'					</select></li>'
 		+	'					<li><button type="button" id="saveSettings">Save Settings</button> <button type="button" id="disableChat">Disable Chat</button></li>'
 		+	'				</ul>'
 		+	'			</form>'
@@ -391,9 +404,12 @@ var siteChat = (function() {
 
 		//Load online user ID set.
 		if(siteChat.getLocalStorage("onlineUserIdSet")) {
+			//alert("did this");
 			JSON.parse(siteChat.getLocalStorage("onlineUserIdSet")).forEach(function(userId) {
 				siteChat.addUserToOnlineList(siteChat.userMap[userId], true);
 			});
+
+			siteChat.showUserInOnlineList();
 		}
 
 		if (siteChat.getLocalStorage('chatGroups')) {
@@ -650,6 +666,7 @@ var siteChat = (function() {
 		
 		if(isUser) {
 			var siteChatUser = siteChat.userMap[recipientUserId];
+			var userColor = siteChat.getUserColorStyle(siteChatUser);
 			
 			active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000 / 60) < (5) : false;
 			online = siteChat.isUserOnline(siteChatUser.id);
@@ -663,7 +680,8 @@ var siteChat = (function() {
 			conversationId: conversationId,
 			recipientUserId: recipientUserId,
 			key: chatWindowIdPrefix + chatWindowUniqueIdentifier,
-			activeClass : online ? (active ? "active" : "idle") : "offline"
+			activeClass : online ? (active ? "active" : "idle") : "offline" ,
+			userColor : userColor
 		}));
 
 		var $chatWindow = $("#chat" + chatWindowIdPrefix + chatWindowUniqueIdentifier);
@@ -883,49 +901,64 @@ var siteChat = (function() {
 		if(replace || !siteChat.userMap.hasOwnProperty(siteChatUser.id)) {
 			siteChat.userMap[ siteChatUser.id ] = siteChatUser;
 
-			if(!doNotAddToOnlineList)
+			if(!doNotAddToOnlineList){
 				siteChat.addUserToOnlineList(siteChatUser, false);
+			}
 			if(save)
 				siteChat.saveUser(siteChatUser, true);
 		}
 	};
 
+	siteChat.showUserInOnlineList = function(){
+		var onlineList = siteChat.onlineUserIdSet.map(function(userId) { return siteChat.userMap[userId]; });
+		onlineList.sort(function(u1, u2) {
+			if(siteChat.settings.sort==0){  //sort based on alphabet
+				return u1.name.toLowerCase().localeCompare(u2.name.toLowerCase());
+			}
+			else if(siteChat.settings.sort==1){
+				var alphabetSort = u1.name.toLowerCase().localeCompare(u2.name.toLowerCase());
+				var u1Active = u1.lastActivityDatetime ? ((new Date().getTime() - u1.lastActivityDatetime) / 1000 / 60) < (5) : false;
+				var u2Active = u2.lastActivityDatetime ? ((new Date().getTime() - u2.lastActivityDatetime) / 1000 / 60) < (5) : false;
+
+				if(u1Active!=u2Active){
+					return u1Active ? -1 : 1;
+				} else{
+					return alphabetSort;
+				}
+			}
+		});
+
+		$("#onlinelistcontainer").append(siteChat.onlineListTemplate({
+			numberOfUsers: siteChat.onlineUsers,
+			users: onlineList.map(function(siteChatUser) {
+				var active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000 / 60) < (5) : false;
+
+				return {
+					userId: siteChatUser.id,
+					activeClass: active ? "active" : "idle",
+					userName: siteChatUser.name,
+					userColor: siteChat.getUserColorStyle(siteChatUser),
+					invisible: siteChat.invisibleUsers.hasOwnProperty(siteChatUser.id)
+				}
+			})
+		}));
+
+		siteChat.adjustElementColorAll();
+	}
+
 	siteChat.addUserToOnlineList = function(siteChatUser, onlyAddToHTML) {
-		var indexToInsert = _.sortedIndex(siteChat.onlineUserIdSet, siteChatUser.id, function(userId) { return siteChat.userMap[ userId ].name.toLowerCase() });
-		if(indexToInsert < siteChat.onlineUserIdSet.length && siteChat.onlineUserIdSet[ indexToInsert ] == siteChatUser.id) {
-			return;
+		//alert("bah?");
+		for(i=siteChat.onlineUserIdSet.length;i>0;i--){
+			if(siteChatUser.id === siteChat.onlineUserIdSet[i])
+				return;
 		}
 
-		var active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000) < (60) * (5) : false;
-		var invisible = siteChat.invisibleUsers.hasOwnProperty(siteChatUser.id);
+		siteChat.onlineUserIdSet.push(siteChatUser.id);
 
-		var userSpanClasses = ["dynamic-color"];
-		if(invisible)
-			userSpanClasses.push("invisible");
-		
-		var html
-			= '<li class="sc-user-window-init username" id="username' + siteChatUser.id + '"><span class="onlineindicator ' + (active ? "active" : "idle") + '"></span>'
-			+ '<span class="' + userSpanClasses.join(" ") + '" style="' + siteChat.getUserColorStyle(siteChatUser) + '">' + siteChatUser.name + '</span>'
-			+ '</li>';
-		var $userDomElement = $(html);
-		
-		if(indexToInsert >= siteChat.onlineUserIdSet.length) {
-			$("#onlinelist").append($userDomElement);
-			siteChat.onlineUserIdSet.push(siteChatUser.id);
-		}
-		else {
-			$("#username" + siteChat.onlineUserIdSet[indexToInsert]).before($userDomElement);
-			siteChat.onlineUserIdSet.splice(indexToInsert, 0, siteChatUser.id);
-		}
-
-		$("#username" + siteChatUser.id).data("username", siteChatUser.name).data("user-id", siteChatUser.id);
+		siteChat.onlineUsers = siteChat.onlineUserIdSet.length;
 
 		if(!onlyAddToHTML)
 			siteChat.setLocalStorage("onlineUserIdSet", JSON.stringify(siteChat.onlineUserIdSet));
-		siteChat.onlineUsers = siteChat.onlineUserIdSet.length;
-		$('#onlinelisttitle .usercount').html('(' + siteChat.onlineUsers + ')');
-
-		siteChat.adjustElementColorAll();
 	};
 
 	siteChat.saveUser = function(siteChatUser, saveUserIdSet) {
@@ -935,6 +968,7 @@ var siteChat = (function() {
 	};
 
 	siteChat.processPendingMessages = function() {
+		alert("pending");
 		for(var index = 0;index < siteChat.pendingMessages.length;++index) {
 			var siteChatConversationMessage = siteChat.pendingMessages[ index ];
 			var siteChatUser = siteChat.userMap[ siteChatConversationMessage.userId ];
@@ -979,7 +1013,19 @@ var siteChat = (function() {
 			
 			var roomUsers = room.userIdSet.map(function(userId) { return siteChat.userMap[userId]; });
 			roomUsers.sort(function(u1, u2) {
-				return u1.name.toLowerCase().localeCompare(u2.name.toLowerCase());
+				if(siteChat.settings.sort==0){  //sort based on alphabet
+					return u1.name.toLowerCase().localeCompare(u2.name.toLowerCase());
+				} else if(siteChat.settings.sort==1){
+					var alphabetSort = u1.name.toLowerCase().localeCompare(u2.name.toLowerCase());
+					var u1Active = u1.lastActivityDatetime ? ((new Date().getTime() - u1.lastActivityDatetime) / 1000 / 60) < (5) : false;
+					var u2Active = u2.lastActivityDatetime ? ((new Date().getTime() - u2.lastActivityDatetime) / 1000 / 60) < (5) : false;
+
+					if(u1Active!=u2Active){
+						return u1Active ? -1 : 1;
+					} else{
+						return alphabetSort;
+					}
+				}
 			});
 
 			$("#roomstab").append(siteChat.roomListRoomTemplate({
@@ -1054,6 +1100,8 @@ var siteChat = (function() {
 			animateAvatars: siteChat.settings.animateAvatars,
 			invisible: siteChat.settings.invisible,
 			emoji: siteChat.settings.emoji,
+			alphabetSort : siteChat.settings.sort == 0 ? true : false,
+			activitySort : siteChat.settings.sort == 1 ? true : false,
 			timestamp: siteChat.settings.timestamp
 		}));
 
@@ -1098,6 +1146,16 @@ var siteChat = (function() {
 		}
 
 		siteChat.settings.emoji = tempemoji;
+
+		var sortOption = document.getElementById("sortOption");
+		siteChat.settings.sort = 0;
+		if(sortOption.value == "activitySort")
+			siteChat.settings.sort = 1;
+
+		$('#onlinelistcontainer').html('');
+		$('#roomstab').html('');
+		siteChat.showUserInOnlineList();
+		siteChat.generateRooms(false);
 
 		siteChat.setPanelCompact(siteChat.settings.compact);
 		siteChat.setSettings(siteChat.settings);
@@ -1292,13 +1350,15 @@ var siteChat = (function() {
 		};
 
 		commandHandlers["UserList"] = function(siteChat, siteChatPacket) {
+			//alert("tried");
+
 			var oldRooms = siteChat.rooms;
 			siteChat.onlineUsers = 0;
 			siteChat.onlineUserIdSet = [];
 			siteChat.rooms = {};
 			siteChat.setInvisibleUsers(siteChatPacket.invisibleUserIds);
 
-			$("#onlinelist").html("");
+			$("#onlinelistcontainer").html("");
 			$("#roomstab").html("");
 
 			//Import users.
@@ -1309,10 +1369,10 @@ var siteChat = (function() {
 
 				$(".titlemarker").each(function(i) {
 					var id = $(this).attr('data-recipient-user-id');
-					var father = this.closest("#chatP"+id);
+					var father = document.getElementById("chatP"+id);
 					var user = siteChat.userMap[id];
 					if(father!=null){
-						var active = user.lastActivityDatetime ? ((new Date().getTime() - user.lastActivityDatetime) / 1000) < (60) * (5) : false;
+						var active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000 / 60) < (5) : false;
 						var online = siteChat.isUserOnline(user.id);
 						var $userIdOnlineSpan = $("#spanP" + user.id);
 
@@ -1334,6 +1394,8 @@ var siteChat = (function() {
 					}
 				});
 			});
+
+			siteChat.showUserInOnlineList();
 
 			//Import rooms.
 			siteChatPacket.siteChatConversations.forEach(function(conversationFromPacket) {
@@ -1409,8 +1471,6 @@ var siteChat = (function() {
 		};
 
 		commandHandlers["SetIgnore"] = function(siteChat, siteChatPacket) {
-			console.log("Set Ignore Response:", siteChatPacket);
-
 			if(siteChatPacket.errors.length > 0) {
 				alert(siteChatPacket.errors.join("\n"));
 				return;
@@ -1466,9 +1526,14 @@ var siteChat = (function() {
 	}
 
 	siteChat.findIgnoreIndex = function(ignoredUserId) {
-		return siteChat.ignores.findIndex(function(ignoreEntry) {
-			return ignoreEntry.ignoredUser.id == ignoredUserId;
-		});
+		var res = -1;
+		for (var i = 0; i < siteChat.ignores.length; ++i) {
+			if (siteChat.ignores[i].ignoredUser.id == ignoredUserId) {
+				res = i;
+				break;
+			}
+		}
+		return res;
 	}
 
 	siteChat.setIgnore = function(ignoredUserId, ignoredName, remove) {
@@ -1528,7 +1593,7 @@ var siteChat = (function() {
 	}
 
 	siteChat.setup = function(sessionId, userId, autoJoinLobby, siteChatUrl, siteChatProtocol, rootPath) {
-		
+
 		siteChat.sessionId = sessionId;
 		siteChat.userId = userId;
 		siteChat.autoJoinLobby = autoJoinLobby && !sessionStorage[siteChat.namespace + "lobbyForcefullyClosed"];
