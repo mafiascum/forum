@@ -54,7 +54,6 @@ function setupChatToggle() {
 	$(".chat-toggle").on("click", function(e) {
 		e.preventDefault();
 		var turnOn = $(this).attr("data-toggle") == "on";
-		console.log("Turn on: " + turnOn);
 		$.ajax({
 			url: "remove_ms_chat.php",
 			type: "post",
