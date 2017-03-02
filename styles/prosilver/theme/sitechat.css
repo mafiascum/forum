@@ -78,20 +78,19 @@
 
 .chatWindow.expanded .title
 {
-	background-color: #477D9E;
-	color: #FFF;
+	background-color: #D6E7F7;
 	font-weight: bold;
 	padding: 5px;
 }
 
 .chatWindow.expanded .title:hover
 {
-	background-color: #4E89AD;
+	background-color: #dcf2ff;
 }
 
 .chatWindow.collapsed .title
 {
-	background-color: #E1DFE6;
+	background-color: #e8e4f3;
 }
 
 .chatWindow.collapsed .title:hover
@@ -781,4 +780,8 @@ ul li.tab.active {
 
 #chatPanel .invisible{
 	font-style:italic;
+}
+
+.listInvisible{
+	display: none !important;
 }
