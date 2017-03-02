@@ -798,7 +798,6 @@ var siteChat = (function() {
 	siteChat.renderMessage = function(siteChatConversationMessage, siteChatUser, isIgnored, isCompact, isEmoji) {
 		var messageDate = new Date(siteChatConversationMessage.createdDatetime);
 		var avatarUrl = siteChatUser.avatarUrl != '' ?  (siteChat.rootPath + '/download/file.php?avatar=' + siteChatUser.avatarUrl) : defaultAvatar;
-		console.log("TS IS BLANK: " + (siteChat.settings.timestamp == "") + ": " + (zeroFill(messageDate.getHours(), 2) + ":" + zeroFill(messageDate.getMinutes(), 2)));
 		var messageDateString = escapeHtml(siteChat.settings.timestamp == "" ? (zeroFill(messageDate.getHours(), 2) + ":" + zeroFill(messageDate.getMinutes(), 2)) : moment(messageDate).format(siteChat.settings.timestamp));
 		var shouldDelayAvatarLoad = siteChat.shouldDelayAvatarLoad(avatarUrl);
 		var imageHtml = shouldDelayAvatarLoad ? '' : siteChat.createAvatarImageHtml(avatarUrl);
@@ -1472,8 +1471,6 @@ var siteChat = (function() {
 		};
 
 		commandHandlers["SetIgnore"] = function(siteChat, siteChatPacket) {
-			console.log("Set Ignore Response:", siteChatPacket);
-
 			if(siteChatPacket.errors.length > 0) {
 				alert(siteChatPacket.errors.join("\n"));
 				return;
