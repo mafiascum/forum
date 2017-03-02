@@ -97,15 +97,11 @@ var siteChat = (function() {
 	siteChat.namespace = "ms_sc2_";//Prepended to all local storage variables.
 	siteChat.attemptReconnectIntervalId = null;
 	siteChat.onlineUserIdSet = [];
-	siteChat.activeUserIdSet = [];
-	siteChat.idleUserIdSet = [];
 	siteChat.MAX_MESSAGES_PER_WINDOW = 30;
 	siteChat.MAX_MESSAGE_LENGTH = 255;
 	siteChat.unloading = false;
 	siteChat.firstConnectionThisPageLoad = true;
 	siteChat.onlineUsers = 0;
-	siteChat.activeUsers = 0;
-	siteChat.idleUsers = 0;
 	siteChat.attemptingLogin = false;
 	siteChat.dragWindow = null;
 	siteChat.commandHandlers = {};
@@ -132,6 +128,18 @@ var siteChat = (function() {
 		+		'{{/each}}'
 		+		'</ul>'
 		+	'</div>'
+	);
+
+	siteChat.onlineListTemplate = Handlebars.compile(
+		'<p id="onlinelisttitle"> Online Users <span class="usercount">({{numberOfUsers}})</span></p>'
+		+		'<ul id="onlinelist"></ul>'
+		+			'{{#each users}}'
+		+			'<li class="sc-user-window-init username dynamic-color {{#if invisible}}invisible{{/if}}" style="{{userColor}}" id="username{{userId}}" data-username="{{userName}}" data-user-id="{{userId}}">'
+		+				'<span class="onlineindicator {{activeClass}}"></span>'
+		+				'{{userName}}'
+		+			'</li>'
+		+			'{{/each}}'
+		+ 		'</li>'
 	);
 
 	siteChat.chatAnchorTemplate = Handlebars.compile(
@@ -166,12 +174,7 @@ var siteChat = (function() {
 		+ 	' 			<div class="clear"></div>'
 		+	' 		</ul>'
 		+	'		<div id="utilitywindow-1" class="tab_content">'
-		+	'			<div id="onlinelistcontainer">'
-		+	'				<p id="onlinelisttitle"><span class="expand-icon">-</span>Online Users <span class="usercount">(0)</span></p>'
-		+	'				<ul id="onlinelist"></ul>'
-		+	'				<ul id="activelist" class="listInvisible"></ul>'
-		+	'				<ul id="idlelist" class="listInvisible"></ul>'
-		+	'			</div>'
+		+	'			<div id="onlinelistcontainer"></div>'
 		+	'		</div>'
 		+	'		<div id="utilitywindow-2" class="tab_content">'
 		+	'		<div id="roomstab"></div>'
@@ -401,9 +404,12 @@ var siteChat = (function() {
 
 		//Load online user ID set.
 		if(siteChat.getLocalStorage("onlineUserIdSet")) {
+			//alert("did this");
 			JSON.parse(siteChat.getLocalStorage("onlineUserIdSet")).forEach(function(userId) {
 				siteChat.addUserToOnlineList(siteChat.userMap[userId], true);
 			});
+
+			siteChat.showUserInOnlineList();
 		}
 
 		if (siteChat.getLocalStorage('chatGroups')) {
@@ -792,6 +798,7 @@ var siteChat = (function() {
 	siteChat.renderMessage = function(siteChatConversationMessage, siteChatUser, isIgnored, isCompact, isEmoji) {
 		var messageDate = new Date(siteChatConversationMessage.createdDatetime);
 		var avatarUrl = siteChatUser.avatarUrl != '' ?  (siteChat.rootPath + '/download/file.php?avatar=' + siteChatUser.avatarUrl) : defaultAvatar;
+		console.log("TS IS BLANK: " + (siteChat.settings.timestamp == "") + ": " + (zeroFill(messageDate.getHours(), 2) + ":" + zeroFill(messageDate.getMinutes(), 2)));
 		var messageDateString = escapeHtml(siteChat.settings.timestamp == "" ? (zeroFill(messageDate.getHours(), 2) + ":" + zeroFill(messageDate.getMinutes(), 2)) : moment(messageDate).format(siteChat.settings.timestamp));
 		var shouldDelayAvatarLoad = siteChat.shouldDelayAvatarLoad(avatarUrl);
 		var imageHtml = shouldDelayAvatarLoad ? '' : siteChat.createAvatarImageHtml(avatarUrl);
@@ -895,100 +902,64 @@ var siteChat = (function() {
 		if(replace || !siteChat.userMap.hasOwnProperty(siteChatUser.id)) {
 			siteChat.userMap[ siteChatUser.id ] = siteChatUser;
 
-			if(!doNotAddToOnlineList)
+			if(!doNotAddToOnlineList){
 				siteChat.addUserToOnlineList(siteChatUser, false);
+			}
 			if(save)
 				siteChat.saveUser(siteChatUser, true);
 		}
 	};
 
+	siteChat.showUserInOnlineList = function(){
+		var onlineList = siteChat.onlineUserIdSet.map(function(userId) { return siteChat.userMap[userId]; });
+		onlineList.sort(function(u1, u2) {
+			if(siteChat.settings.sort==0){  //sort based on alphabet
+				return u1.name.toLowerCase().localeCompare(u2.name.toLowerCase());
+			}
+			else if(siteChat.settings.sort==1){
+				var alphabetSort = u1.name.toLowerCase().localeCompare(u2.name.toLowerCase());
+				var u1Active = u1.lastActivityDatetime ? ((new Date().getTime() - u1.lastActivityDatetime) / 1000 / 60) < (5) : false;
+				var u2Active = u2.lastActivityDatetime ? ((new Date().getTime() - u2.lastActivityDatetime) / 1000 / 60) < (5) : false;
+
+				if(u1Active!=u2Active){
+					return u1Active ? -1 : 1;
+				} else{
+					return alphabetSort;
+				}
+			}
+		});
+
+		$("#onlinelistcontainer").append(siteChat.onlineListTemplate({
+			numberOfUsers: siteChat.onlineUsers,
+			users: onlineList.map(function(siteChatUser) {
+				var active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000 / 60) < (5) : false;
+
+				return {
+					userId: siteChatUser.id,
+					activeClass: active ? "active" : "idle",
+					userName: siteChatUser.name,
+					userColor: siteChat.getUserColorStyle(siteChatUser),
+					invisible: siteChat.invisibleUsers.hasOwnProperty(siteChatUser.id)
+				}
+			})
+		}));
+
+		siteChat.adjustElementColorAll();
+	}
+
 	siteChat.addUserToOnlineList = function(siteChatUser, onlyAddToHTML) {
-		var indexToInsertOnline = _.sortedIndex(siteChat.onlineUserIdSet, siteChatUser.id, function(userId) { return siteChat.userMap[ userId ].name.toLowerCase() });
-		if(indexToInsertOnline < siteChat.onlineUserIdSet.length && siteChat.onlineUserIdSet[ indexToInsertOnline ] == siteChatUser.id) {
-			return;
-		} //user is already added
-
-		var indexToInsertActive = _.sortedIndex(siteChat.activeUserIdSet, siteChatUser.id, function(userId) { return siteChat.userMap[ userId ].name.toLowerCase() });
-		var indexToInsertIdle = _.sortedIndex(siteChat.idleUserIdSet, siteChatUser.id, function(userId) { return siteChat.userMap[ userId ].name.toLowerCase() });
-
-		var active = active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000 / 60) < (5) : false;
-		var invisible = siteChat.invisibleUsers.hasOwnProperty(siteChatUser.id);
-
-		var userSpanClasses = ["dynamic-color"];
-		if(invisible)
-			userSpanClasses.push("invisible");
-		
-		var html
-			= '<li class="sc-user-window-init username" id="username' + siteChatUser.id + '"><span class="onlineindicator ' + (active ? "active" : "idle") + '"></span>'
-			+ '<span class="' + userSpanClasses.join(" ") + '" style="' + siteChat.getUserColorStyle(siteChatUser) + '">' + siteChatUser.name + '</span>'
-			+ '</li>';
-		var $userDomElement = $(html);
-
-		//alert("here");
-		if(indexToInsertOnline >= siteChat.onlineUserIdSet.length) {
-			siteChat.onlineUserIdSet.push(siteChatUser.id);
-			$("#onlinelist").append($userDomElement);
-		}
-		else {
-			$("#username" + siteChat.onlineUserIdSet[indexToInsertOnline]).before($userOnlineDomElement);
-			siteChat.onlineUserIdSet.splice(indexToInsertOnline, 0, siteChatUser.id);
+		//alert("bah?");
+		for(i=siteChat.onlineUserIdSet.length;i>0;i--){
+			if(siteChatUser.id === siteChat.onlineUserIdSet[i])
+				return;
 		}
 
-		htmlActive
-			= '<li class="sc-user-window-init username" id="active-username' + siteChatUser.id + '"><span class="onlineindicator ' + (active ? "active" : "idle") + '"></span>'
-			+ '<span class="' + userSpanClasses.join(" ") + '" style="' + siteChat.getUserColorStyle(siteChatUser) + '">' + siteChatUser.name + '</span>'
-			+ '</li>';
-		var $userActiveDomElement = $(htmlActive);
+		siteChat.onlineUserIdSet.push(siteChatUser.id);
 
-		htmlIdle
-			= '<li class="sc-user-window-init username" id="idle-username' + siteChatUser.id + '"><span class="onlineindicator ' + (active ? "active" : "idle") + '"></span>'
-			+ '<span class="' + userSpanClasses.join(" ") + '" style="' + siteChat.getUserColorStyle(siteChatUser) + '">' + siteChatUser.name + '</span>'
-			+ '</li>';
-		var $userIdleDomElement = $(htmlIdle);
-
-		if(active){
-			if(indexToInsertActive >= siteChat.activeUserIdSet.length) {
-				siteChat.activeUserIdSet.push(siteChatUser.id);
-				$("#activelist").append($userActiveDomElement);
-			}
-			else {
-				$("#active-username" + siteChat.activeUserIdSet[indexToInsertActive]).before($userActiveDomElement);
-				siteChat.activeUserIdSet.splice(indexToInsertActive, 0, siteChatUser.id);
-			}
-		} else {
-			if(indexToInsertIdle >= siteChat.activeUserIdSet.length) {
-				siteChat.idleUserIdSet.push(siteChatUser.id);
-				$("#idlelist").append($userIdleDomElement);
-			}
-			else {
-				$("#idle-username" + siteChat.idleUserIdSet[indexToInsertIdle]).before($userIdleDomElement);
-				siteChat.idleUserIdSet.splice(indexToInsertIdle, 0, siteChatUser.id);
-			}
-		}
-
-		if(siteChat.settings.sort == 0){  //alphabetic sort
-			$("#onlinelist").removeClass("listInvisible");
-			$("#activelist").addClass("listInvisible");
-			$("#idlelist").addClass("listInvisible");
-		} else if(siteChat.settings.sort == 1){ //activity sort
-			$("#onlinelist").addClass("listInvisible");
-			$("#activelist").removeClass("listInvisible");
-			$("#idlelist").removeClass("listInvisible");
-		}
-
-		if(!active)
-			siteChat.activeUsers ++;
-
-		$("#username" + siteChatUser.id).data("username", siteChatUser.name).data("user-id", siteChatUser.id);
-		$("#active-username" + siteChatUser.id).data("username", siteChatUser.name).data("user-id", siteChatUser.id);
-		$("#idle-username" + siteChatUser.id).data("username", siteChatUser.name).data("user-id", siteChatUser.id);
+		siteChat.onlineUsers = siteChat.onlineUserIdSet.length;
 
 		if(!onlyAddToHTML)
 			siteChat.setLocalStorage("onlineUserIdSet", JSON.stringify(siteChat.onlineUserIdSet));
-		siteChat.onlineUsers = siteChat.onlineUserIdSet.length;
-		$('#onlinelisttitle .usercount').html('(' + siteChat.onlineUsers + ')');
-
-		siteChat.adjustElementColorAll();
 	};
 
 	siteChat.saveUser = function(siteChatUser, saveUserIdSet) {
@@ -998,6 +969,7 @@ var siteChat = (function() {
 	};
 
 	siteChat.processPendingMessages = function() {
+		alert("pending");
 		for(var index = 0;index < siteChat.pendingMessages.length;++index) {
 			var siteChatConversationMessage = siteChat.pendingMessages[ index ];
 			var siteChatUser = siteChat.userMap[ siteChatConversationMessage.userId ];
@@ -1042,7 +1014,7 @@ var siteChat = (function() {
 			
 			var roomUsers = room.userIdSet.map(function(userId) { return siteChat.userMap[userId]; });
 			roomUsers.sort(function(u1, u2) {
-				if(sitechat.settings.sort==0){  //sort based on alphabet
+				if(siteChat.settings.sort==0){  //sort based on alphabet
 					return u1.name.toLowerCase().localeCompare(u2.name.toLowerCase());
 				} else if(siteChat.settings.sort==1){
 					var alphabetSort = u1.name.toLowerCase().localeCompare(u2.name.toLowerCase());
@@ -1181,15 +1153,10 @@ var siteChat = (function() {
 		if(sortOption.value == "activitySort")
 			siteChat.settings.sort = 1;
 
-		if(siteChat.settings.sort == 0){  //alphabetic sort
-			$("#onlinelist").removeClass("listInvisible");
-			$("#activelist").addClass("listInvisible");
-			$("#idlelist").addClass("listInvisible");
-		} else if(siteChat.settings.sort == 1){ //activity sort
-			$("#onlinelist").addClass("listInvisible");
-			$("#activelist").removeClass("listInvisible");
-			$("#idlelist").removeClass("listInvisible");
-		}
+		$('#onlinelistcontainer').html('');
+		$('#roomstab').html('');
+		siteChat.showUserInOnlineList();
+		siteChat.generateRooms(false);
 
 		siteChat.setPanelCompact(siteChat.settings.compact);
 		siteChat.setSettings(siteChat.settings);
@@ -1215,8 +1182,6 @@ var siteChat = (function() {
 		siteChat.generateRooms(false);
 		if (siteChat.onlineGroup.expanded == false) {
 			$('#onlinelist').css('display','none');
-			$('#activelist').css('display','none');
-			$('#idlelist').css('display','none');
 			$('#onlinelisttitle .expand-icon').html('+');
 		}
 		siteChat.setActiveTab(siteChat.selectedTab == null ? 0 : siteChat.selectedTab);
@@ -1234,16 +1199,12 @@ var siteChat = (function() {
 	siteChat.onlinelistexpand = function() {
 		if (siteChat.onlineGroup.expanded == false) {
 			$('#onlinelist').css('display', 'block');
-			$('#activelist').css('display','block');
-			$('#idlelist').css('display','block');
 			$('#onlinelisttitle .expand-icon').html('-');
 			siteChat.onlineGroup.expanded = true;
 			localStorage[siteChat.namespace +'onlineGroup'] = JSON.stringify(siteChat.onlineGroup);
 		}
 		else {
 			$('#onlinelist').css('display', 'none');
-			$('#activelist').css('display','none');
-			$('#idlelist').css('display','none');
 			$('#onlinelisttitle .expand-icon').html('+');
 			siteChat.onlineGroup.expanded = false;
 			localStorage[siteChat.namespace +'onlineGroup'] = JSON.stringify(siteChat.onlineGroup);
@@ -1390,17 +1351,15 @@ var siteChat = (function() {
 		};
 
 		commandHandlers["UserList"] = function(siteChat, siteChatPacket) {
+			//alert("tried");
+
 			var oldRooms = siteChat.rooms;
 			siteChat.onlineUsers = 0;
 			siteChat.onlineUserIdSet = [];
-			siteChat.activeUserIdSet = [];
-			siteChat.idleUserIdSet = [];
 			siteChat.rooms = {};
 			siteChat.setInvisibleUsers(siteChatPacket.invisibleUserIds);
 
-			$("#onlinelist").html("");
-			$("#activelist").html("");
-			$("#idlelist").html("");
+			$("#onlinelistcontainer").html("");
 			$("#roomstab").html("");
 
 			//Import users.
@@ -1411,7 +1370,7 @@ var siteChat = (function() {
 
 				$(".titlemarker").each(function(i) {
 					var id = $(this).attr('data-recipient-user-id');
-					var father = this.closest("#chatP"+id);
+					var father = document.getElementById("chatP"+id);
 					var user = siteChat.userMap[id];
 					if(father!=null){
 						var active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000 / 60) < (5) : false;
@@ -1436,6 +1395,8 @@ var siteChat = (function() {
 					}
 				});
 			});
+
+			siteChat.showUserInOnlineList();
 
 			//Import rooms.
 			siteChatPacket.siteChatConversations.forEach(function(conversationFromPacket) {
@@ -1568,9 +1529,14 @@ var siteChat = (function() {
 	}
 
 	siteChat.findIgnoreIndex = function(ignoredUserId) {
-		return siteChat.ignores.findIndex(function(ignoreEntry) {
-			return ignoreEntry.ignoredUser.id == ignoredUserId;
-		});
+		var res = -1;
+		for (var i = 0; i < siteChat.ignores.length; ++i) {
+			if (siteChat.ignores[i].ignoredUser.id == ignoredUserId) {
+				res = i;
+				break;
+			}
+		}
+		return res;
 	}
 
 	siteChat.setIgnore = function(ignoredUserId, ignoredName, remove) {
@@ -1630,7 +1596,7 @@ var siteChat = (function() {
 	}
 
 	siteChat.setup = function(sessionId, userId, autoJoinLobby, siteChatUrl, siteChatProtocol, rootPath) {
-		
+
 		siteChat.sessionId = sessionId;
 		siteChat.userId = userId;
 		siteChat.autoJoinLobby = autoJoinLobby && !sessionStorage[siteChat.namespace + "lobbyForcefullyClosed"];
