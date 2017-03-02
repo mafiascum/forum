@@ -36,7 +36,26 @@ function jumpto()
 	}
 }
 
+function setupChatToggle() {
+	$(".chat-toggle").on("click", function(e) {
+		e.preventDefault();
+		var turnOn = $(this).attr("data-toggle") == "on";
+		console.log("Turn on: " + turnOn);
+		$.ajax({
+			url: "remove_ms_chat.php",
+			type: "post",
+			data: {chat: turnOn ? "1" : "0"},
+			success: function(response) {
+				window.location.reload();
+			}
+		});
+	});
+}
+
 $(document).ready(function() {
+
+	setupChatToggle();
+
 	$('#jumpto1').keyup(function(e) {
 		jumptobinding(e, '#jumpto1');
 	});

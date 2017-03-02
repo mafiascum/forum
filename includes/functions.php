@@ -4553,6 +4553,8 @@ function page_header($page_title = '', $display_online_list = true, $item_id = 0
 		'RECORD_USERS'					=> $l_online_record,
 		'PRIVATE_MESSAGE_INFO'			=> $l_privmsgs_text,
 		'PRIVATE_MESSAGE_INFO_UNREAD'	=> $l_privmsgs_text_unread,
+		'TOGGLE_CHAT_DISPLAY'			=> $user->optionget('chat_enabled') ? $user->lang['TURN_OFF_CHAT'] : $user->lang['TURN_ON_CHAT'],
+		'TOGGLE_CHAT_VALUE'				=> $user->optionget('chat_enabled') ? "off" : "on",
 		'S_USER_ID'						=> $user->data['user_id'],
 		'S_USER_NEW_PRIVMSG'			=> $user->data['user_new_privmsg'],
 		'S_USER_UNREAD_PRIVMSG'			=> $user->data['user_unread_privmsg'],

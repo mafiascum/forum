@@ -668,6 +668,8 @@ $lang = array_merge($lang, array(
 	'TOTAL_USERS_OTHER'		=> 'Total members <strong>%d</strong>',
 	'TOTAL_USERS_ZERO'		=> 'Total members <strong>0</strong>',
 	'TRACKED_PHP_ERROR'		=> 'Tracked PHP errors: %s',
+	'TURN_ON_CHAT'			=> 'Turn on chat',
+	'TURN_OFF_CHAT'			=> 'Turn off chat',
 	'TWITTER'				=> 'Twitter',
 
 	'UNABLE_GET_IMAGE_SIZE'			=> 'It was not possible to determine the dimensions of the image.',
