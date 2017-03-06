@@ -399,24 +399,13 @@ class ucp_register
 				if ((($coppa ||
 					$config['require_activation'] == USER_ACTIVATION_SELF ||
 					$config['require_activation'] == USER_ACTIVATION_ADMIN) && $config['email_enable'])
-					|| $ipFlag || $emailFlag || $spamFlag || $passwordFlag)
+					|| $spamFlag)
 				{
 					$user_actkey = gen_rand_string(mt_rand(6, 10));
 					$user_type = USER_INACTIVE;
 					$user_inactive_reason = INACTIVE_REGISTER;
 					//Ordered from least to greatest flag, the highest level flag will be the one triggered.
-					if($emailFlag)
-					{
-						$user_inactive_reason = INACTIVE_EMAILFLAG;
-					}
-					if($ipFlag)
-					{
-						$user_inactive_reason = INACTIVE_IPFLAG;
-					}
-					if($passwordFlag)
-					{
-						$user_inactive_reason = INACTIVE_PASSWORDFLAG;
-					}
+					
 					if($spamFlag)
 					{
 						$user_inactive_reason = INACTIVE_SPAMFLAG;
@@ -485,6 +474,11 @@ class ucp_register
 					$db->sql_query($sql);
 				}
 
+				if($spamFlag || $ipFlag || $passwordFlag)
+				{
+					group_user_add($config['potential_alt_user_group'], array($user_id));
+				}
+
 				// Okay, captcha, your job is done.
 				if ($config['enable_confirm'] && isset($captcha))
 				{
@@ -496,20 +490,10 @@ class ucp_register
 					$message = $user->lang['ACCOUNT_INACTIVE_SPAM'];
 					$email_template = 'user_inactive_spam';
 				}
-				else if($passwordFlag)
+				else if($passwordFlag || $ipFlag || $emailFlag)
 				{
-					$message = $user->lang['ACCOUNT_INACTIVE_PASSWORD'];
-					$email_template = 'user_inactive_existing';
-				}
-				else if($ipFlag)
-				{
-					$message = $user->lang['ACCOUNT_INACTIVE_IP'];
-					$email_template = 'user_inactive_existing';
-				}
-				else if($emailFlag)
-				{
-					$message = $user->lang['ACCOUNT_INACTIVE_EMAIL'];
-					$email_template = 'user_inactive_existing';
+					$message = $user->lang['ACCOUNT_INACTIVE'];
+					$email_template = 'user_welcome_inactive';
 				}
 				else if ($coppa && $config['email_enable'])
 				{
