@@ -1367,32 +1367,20 @@ var siteChat = (function() {
 				siteChat.addUserToOnlineList(siteChatUser, false);
 				siteChat.saveUser(siteChatUser, false);
 
-				$(".titlemarker").each(function(i) {
-					var id = $(this).attr('data-recipient-user-id');
-					var father = document.getElementById("chatP"+id);
-					var user = siteChat.userMap[id];
-					if(father!=null){
-						var active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000 / 60) < (5) : false;
-						var online = siteChat.isUserOnline(user.id);
-						var $userIdOnlineSpan = $("#spanP" + user.id);
+				var window = siteChat.chatWindows["P" + siteChatUser.id];
+				var $window = window != null ? window.getWindow() : null;
+				if($window != null && $window.length > 0) {
+					var active = siteChatUser.lastActivityDatetime ? ((new Date().getTime() - siteChatUser.lastActivityDatetime) / 1000 / 60) < (5) : false;
+					var online = siteChat.isUserOnline(siteChatUser.id);
+					var $userIdOnlineSpan = $("#spanP" + siteChatUser.id);
 
-						if(!online) {
-							$userIdOnlineSpan.removeClass('idle');
-							$userIdOnlineSpan.removeClass('active');
-							$userIdOnlineSpan.addClass('offline');
-						}
-						else if(active) {
-							$userIdOnlineSpan.removeClass('idle');
-							$userIdOnlineSpan.removeClass('offline');
-							$userIdOnlineSpan.addClass('active');
-						}
-						else {
-							$userIdOnlineSpan.removeClass('active');
-							$userIdOnlineSpan.removeClass('offline');
-							$userIdOnlineSpan.addClass('idle');
-						}
-					}
-				});
+					if(!online)
+						$userIdOnlineSpan.removeClass('idle').removeClass('active').addClass('offline');
+					else if(active)
+						$userIdOnlineSpan.removeClass('idle').removeClass('offline').addClass('active');
+					else
+						$userIdOnlineSpan.removeClass('active').removeClass('offline').addClass('idle');
+				}
 			});
 
 			siteChat.showUserInOnlineList();
