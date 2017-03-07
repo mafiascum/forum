@@ -4331,7 +4331,7 @@ function jid_decode($username){
 /**
 * Generate page header
 */
-function page_header($page_title = '', $display_online_list = true, $item_id = 0, $item = 'forum')
+function page_header($page_title = '', $display_online_list = true, $item_id = 0, $item = 'forum', $canonical = '', $robots = '')
 {
 	global $db, $config, $template, $SID, $_SID, $user, $auth, $phpEx, $phpbb_root_path, $mobile;
 
@@ -4544,6 +4544,8 @@ function page_header($page_title = '', $display_online_list = true, $item_id = 0
 		'SITENAME'						=> $config['sitename'],
 		'SITE_DESCRIPTION'				=> $config['site_desc'],
 		'PAGE_TITLE'					=> $page_title,
+		'CANONICAL'						=> $canonical,
+		'ROBOTS'						=> $robots,
 		'SCRIPT_NAME'					=> str_replace('.' . $phpEx, '', $user->page['page_name']),
 		'LAST_VISIT_DATE'				=> sprintf($user->lang['YOU_LAST_VISIT'], $s_last_visit),
 		'LAST_VISIT_YOU'				=> $s_last_visit,
