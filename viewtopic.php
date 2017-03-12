@@ -49,7 +49,6 @@ $sort_days	= request_var('st', $default_sort_days);
 $sort_key	= request_var('sk', $default_sort_key);
 $sort_dir	= request_var('sd', $default_sort_dir);
 $posts_per_page_param = request_var('ppp', 0);
-$canonical = '';
 
 //----[ User Post Isolation ]----\\
 $isolationUserArray = request_var('user_select', array('' => 0));
@@ -2088,25 +2087,6 @@ if (empty($_REQUEST['t']) && !empty($topic_id))
 }
 
 //on_page($total_posts, $posts_per_page, $start)
-
-function create_viewtopic_seo($topic_id, $forum_id, $start)
-{
-	global $config, $phpEx, $phpbb_root_path;
-	$default = array(
-		'canonical'	=> '',
-		'robots'	=> 'NOINDEX, FOLLOW'
-	);
-
-	if($start % $config['posts_per_page'] != 0)
-		return $default;
-	if(request_var('activity_overview', '') || request_var('vote_id', '') || request_var('st', '') || request_var('sk', '') || request_var('sd', '') || request_var('ppp', '') || request_var('user_select', ''))
-		return $default;
-	
-	return array(
-		'canonical'	=> "{$phpbb_root_path}viewtopic.$phpEx?" . (($forum_id) ? "f=$forum_id&" : "") . "t=$topic_id" . ($start == 0 ? "" : "&start=$start"),
-		'robots'	=> 'INDEX, FOLLOW'
-	);
-}
 
 $seo = create_viewtopic_seo($topic_id, $forum_id, $start);
 

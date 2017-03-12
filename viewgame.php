@@ -558,7 +558,7 @@ if ($user->data['user_id'] == ANONYMOUS)
 					'L_BBCODE_DICE_HELP'			=> 'Dice tag: [dice]1d6[/dice]',
 					'L_BBCODE_POST_HELP'			=> 'Two varieties: [post=<ISO_POST_NUMBER>]Text[/post] OR [post=#<POST_ID>]Text[/post]',
 								));
-				page_header($game['name']);
+				page_header($game['name'], true, 0, 'forum', '', 'NOINDEX, FOLLOW');
 				$template->set_filenames(array(
 					'body' => $templateFile)
 				);
@@ -624,7 +624,7 @@ if ($user->data['user_id'] == ANONYMOUS)
 					'L_BBCODE_DICE_HELP'			=> 'Dice tag: [dice]1d6[/dice]',
 					'L_BBCODE_POST_HELP'			=> 'Two varieties: [post=<ISO_POST_NUMBER>]Text[/post] OR [post=#<POST_ID>]Text[/post]',
 								));
-				page_header($game['name']);
+				page_header($game['name'], true, 0, 'forum', '', 'NOINDEX, FOLLOW');
 				$template->set_filenames(array(
 					'body' => $templateFile)
 				);
@@ -916,7 +916,7 @@ if ($user->data['user_id'] == ANONYMOUS)
 
 			//Grab all the mod info.
 			grabModInfo($game_id);
-			page_header($game['name']);
+			page_header($game['name'], true, 0, 'forum', '', 'NOINDEX, FOLLOW');
 			$template->assign_vars(array(
 				'S_IN_ACTION'	=>  append_sid($phpbb_root_path . 'viewgame.'.$phpEx.'?mode=enter&amp;type=in&amp;g='.$game_id),
 				'EDIT_DETAILS_ACTION'	=> append_sid($phpbb_root_path . 'viewgame.'.$phpEx.'?mode=editdetails&amp;g='.$game_id),

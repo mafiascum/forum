@@ -4892,4 +4892,24 @@ function is_topic_moderator($user_id, &$topic_data, $topic_moderators)
 	return $topic_data['topic_author_moderation'] && ($topic_data['topic_poster'] == $user_id || in_array($user_id, $topic_moderators));
 }
 
+function create_viewtopic_seo($topic_id, $forum_id, $start)
+{
+	global $config, $phpEx, $phpbb_root_path;
+	
+	$default = array(
+		'canonical'	=> '',
+		'robots'	=> 'NOINDEX, FOLLOW'
+	);
+
+	if($start % $config['posts_per_page'] != 0)
+		return $default;
+	if(request_var('activity_overview', '') || request_var('vote_id', '') || request_var('st', '') || request_var('sk', '') || request_var('sd', '') || request_var('ppp', '') || !empty(request_var('user_select', array('' => 0))))
+		return $default;
+	
+	return array(
+		'canonical'	=> $config['server_protocol'] . $config['server_name'] . $config['script_path'] . "/viewtopic.$phpEx?" . (($forum_id) ? "f=$forum_id&" : "") . "t=$topic_id" . ($start == 0 ? "" : "&start=$start"),
+		'robots'	=> 'INDEX, FOLLOW'
+	);
+}
+
 ?>
