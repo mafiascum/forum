@@ -126,7 +126,7 @@ switch($mode)
 		'CAN_MODERATE'		=> checkModLimits($user->data['user_id'], 0),
 		));
 		
-		page_header($user->lang['SUBMIT_GAME']);
+		page_header($user->lang['SUBMIT_GAME'], true, 0, 'forum', '', 'NOINDEX, FOLLOW');
 		$templateFile = 'game_request.html';
 		break;
 		//*********************************************
@@ -153,7 +153,8 @@ switch($mode)
 				'MODERATION' => $moderate, //Show mod actions or not.
 				'REPLACEMENT'	=> true,
 			));
-			page_header(sprintf($user->lang['SINGLE_QUEUE'], $queue_info['type_name'], ''));
+			
+			page_header(sprintf($user->lang['SINGLE_QUEUE'], $queue_info['type_name'], ''), true, 0, 'forum', '', 'NOINDEX, FOLLOW');
 			$template->assign_vars(array(
 				'S_STATUS_OPTIONS' 	=> createStatusOptions($d_status),
 				'S_SORT_ACTION'		=> append_sid('viewqueue.'.$phpEx.'?mode=view&amp;q='.$queue),
@@ -179,7 +180,7 @@ switch($mode)
 				$game_ids[] = $game_id['game_id'];
 			}
 			load_game(0, 0, 0, 0, 0, $start, $limit, 'mod_games',false, $game_ids);
-			page_header('Your Games');
+			page_header('Your Games', true, 0, 'forum', '', 'NOINDEX, FOLLOW');
 			$templateFile = 'users_games.html';
 			break;
 		case 'view':
@@ -208,7 +209,7 @@ switch($mode)
 				'QUEUE_ID'		=> $queue,
 				'MODERATION' => $moderate, //Show mod actions or not.
 			));
-			page_header(sprintf($user->lang['SINGLE_QUEUE'], $queue_info['type_name'], ''));
+			page_header(sprintf($user->lang['SINGLE_QUEUE'], $queue_info['type_name'], ''), true, 0, 'forum', '', 'NOINDEX, FOLLOW');
 			$template->assign_vars(array(
 				'S_STATUS_OPTIONS' 	=> createStatusOptions($d_status),
 				'S_SORT_ACTION'		=> append_sid('viewqueue.'.$phpEx.'?mode=view&amp;q='.$queue),
@@ -226,7 +227,7 @@ switch($mode)
 			}
 			load_game(0, 0, 0, $d_approval, $d_status, $start, $limit, 'recent_games', false, array(), true);
 			generateQueueList('queues');
-			page_header($user->lang['QUEUES']);
+			page_header($user->lang['QUEUES'], true, 0, 'forum', '', 'NOINDEX, FOLLOW');
 			$template->assign_vars(array(
 				'S_STATUS_OPTIONS' => createStatusOptions($d_status),
 				'S_SORT_ACTION'		=> append_sid('viewqueue.'.$phpEx),

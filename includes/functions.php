@@ -4331,7 +4331,7 @@ function jid_decode($username){
 /**
 * Generate page header
 */
-function page_header($page_title = '', $display_online_list = true, $item_id = 0, $item = 'forum')
+function page_header($page_title = '', $display_online_list = true, $item_id = 0, $item = 'forum', $canonical = '', $robots = '')
 {
 	global $db, $config, $template, $SID, $_SID, $user, $auth, $phpEx, $phpbb_root_path, $mobile;
 
@@ -4544,6 +4544,8 @@ function page_header($page_title = '', $display_online_list = true, $item_id = 0
 		'SITENAME'						=> $config['sitename'],
 		'SITE_DESCRIPTION'				=> $config['site_desc'],
 		'PAGE_TITLE'					=> $page_title,
+		'CANONICAL'						=> $canonical,
+		'ROBOTS'						=> $robots,
 		'SCRIPT_NAME'					=> str_replace('.' . $phpEx, '', $user->page['page_name']),
 		'LAST_VISIT_DATE'				=> sprintf($user->lang['YOU_LAST_VISIT'], $s_last_visit),
 		'LAST_VISIT_YOU'				=> $s_last_visit,
@@ -4888,6 +4890,26 @@ function handle_topic_not_found($post_id, $topic_id, $forum_id)
 function is_topic_moderator($user_id, &$topic_data, $topic_moderators)
 {
 	return $topic_data['topic_author_moderation'] && ($topic_data['topic_poster'] == $user_id || in_array($user_id, $topic_moderators));
+}
+
+function create_viewtopic_seo($topic_id, $forum_id, $start)
+{
+	global $config, $phpEx, $phpbb_root_path;
+	
+	$default = array(
+		'canonical'	=> '',
+		'robots'	=> 'NOINDEX, FOLLOW'
+	);
+
+	if($start % $config['posts_per_page'] != 0)
+		return $default;
+	if(request_var('activity_overview', '') || request_var('vote_id', '') || request_var('st', '') || request_var('sk', '') || request_var('sd', '') || request_var('ppp', '') || !empty(request_var('user_select', array('' => 0))))
+		return $default;
+	
+	return array(
+		'canonical'	=> $config['server_protocol'] . $config['server_name'] . $config['script_path'] . "/viewtopic.$phpEx?" . (($forum_id) ? "f=$forum_id&" : "") . "t=$topic_id" . ($start == 0 ? "" : "&start=$start"),
+		'robots'	=> 'INDEX, FOLLOW'
+	);
 }
 
 ?>

@@ -204,6 +204,7 @@ input[type=radio]:checked + label::before {
 }
 </style>
 <title>Mafiascum Valentines Day Match Making Test</title>
+<meta name="ROBOTS" content="NOINDEX, NOFOLLOW"/>
 </head>
 <body>
 <form action="valentine_questions.php" method="post">
