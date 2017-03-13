@@ -211,6 +211,7 @@ input[type=radio]:checked + label::before {
 	margin-top: 20px;
 }
 </style>
+<meta name="ROBOTS" content="NOINDEX, NOFOLLOW"/>
 </head>
 <body>
 <h1>Mafiascum Valentines Day Match Making Results</h1>

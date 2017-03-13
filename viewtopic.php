@@ -49,6 +49,7 @@ $sort_days	= request_var('st', $default_sort_days);
 $sort_key	= request_var('sk', $default_sort_key);
 $sort_dir	= request_var('sd', $default_sort_dir);
 $posts_per_page_param = request_var('ppp', 0);
+
 //----[ User Post Isolation ]----\\
 $isolationUserArray = request_var('user_select', array('' => 0));
 while( ($key = array_search(0, $isolationUserArray)) !== false)
@@ -679,7 +680,8 @@ if (($config['email_enable'] || $config['jab_enable']) && $config['allow_topic_n
 
 	$db->sql_freeresult($resultSet);
 
-	page_header($topic_data['is_private'] ? 'PRIVATE TOPIC: ' . $topic_data['topic_title'] : $topic_data['topic_title'], true, $forum_id);
+	$seo = create_viewtopic_seo($topic_id, $forum_id, $start);
+	page_header($topic_data['is_private'] ? 'PRIVATE TOPIC: ' . $topic_data['topic_title'] : $topic_data['topic_title'], true, $forum_id, 'forum', $seo['canonical'], $seo['robots']);
 
 	$template->set_filenames(array(
 		'body' => 'viewtopic_activity_overview.html')
@@ -2084,8 +2086,12 @@ if (empty($_REQUEST['t']) && !empty($topic_id))
 	$_REQUEST['t'] = $topic_id;
 }
 
+//on_page($total_posts, $posts_per_page, $start)
+
+$seo = create_viewtopic_seo($topic_id, $forum_id, $start);
+
 // Output the page
-page_header($topic_data['topic_title'], true, $forum_id);
+page_header($topic_data['topic_title'], true, $forum_id, 'forum', $seo['canonical'], $seo['robots']);
 $template->set_filenames(array(
 	'body' => ($view == 'print') ? 'viewtopic_print.html' : 'viewtopic_body.html',
 	'head' => 'overall_header.html')
