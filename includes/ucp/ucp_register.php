@@ -474,7 +474,7 @@ class ucp_register
 					$db->sql_query($sql);
 				}
 
-				if($spamFlag || $ipFlag || $passwordFlag)
+				if($emailFlag || $ipFlag || $passwordFlag)
 				{
 					group_user_add($config['potential_alt_user_group'], array($user_id));
 				}
