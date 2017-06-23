@@ -404,7 +404,6 @@ var siteChat = (function() {
 
 		//Load online user ID set.
 		if(siteChat.getLocalStorage("onlineUserIdSet")) {
-			//alert("did this");
 			JSON.parse(siteChat.getLocalStorage("onlineUserIdSet")).forEach(function(userId) {
 				siteChat.addUserToOnlineList(siteChat.userMap[userId], true);
 			});
@@ -947,7 +946,6 @@ var siteChat = (function() {
 	}
 
 	siteChat.addUserToOnlineList = function(siteChatUser, onlyAddToHTML) {
-		//alert("bah?");
 		for(i=siteChat.onlineUserIdSet.length;i>0;i--){
 			if(siteChatUser.id === siteChat.onlineUserIdSet[i])
 				return;
@@ -968,7 +966,6 @@ var siteChat = (function() {
 	};
 
 	siteChat.processPendingMessages = function() {
-		alert("pending");
 		for(var index = 0;index < siteChat.pendingMessages.length;++index) {
 			var siteChatConversationMessage = siteChat.pendingMessages[ index ];
 			var siteChatUser = siteChat.userMap[ siteChatConversationMessage.userId ];
@@ -1350,8 +1347,7 @@ var siteChat = (function() {
 		};
 
 		commandHandlers["UserList"] = function(siteChat, siteChatPacket) {
-			//alert("tried");
-
+			
 			var oldRooms = siteChat.rooms;
 			siteChat.onlineUsers = 0;
 			siteChat.onlineUserIdSet = [];
