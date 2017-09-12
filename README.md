@@ -1,6 +1,28 @@
 # MafiaScum Forum
 This repo hosts the code used on https://forum.mafiascum.net
 
+# With Docker Compose
+This assumes you already have both Docker and Docker Compose installed.
+
+## Setup
+Copy `.env.sample` to `.env` and modify accordingly if this suits you.
+
+## Running
+```bash
+# Start Services (web server and db)
+docker-compose up
+
+# Import the base schema (Do this on setup or if you want to reset)
+# Ensure your mariadb container is running beforehand
+./bootstrap_database.docker.compose.sh
+```
+
+## MariaDB Console
+```bash
+docker-compose exec db sh -c 'exec mysql -h"$DB_HOST" -P"$DB_PORT" -u"$DB_USER" -p"$DB_PASS" $DB_NAME'
+```
+
+
 # With Docker
 This assumes your already have Docker installed. If you don't, go find a guide for installing on the OS you're using (The official docs will likely be helpful here).
 

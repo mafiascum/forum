@@ -1,0 +1,24 @@
+version: '2'
+services:
+  app:
+    container_name: app
+    build: .
+    ports:
+      - "17080:80"
+    env_file:
+      - .env
+    depends_on:
+      - db
+    networks:
+      - mafiascum
+
+  db:
+    container_name: mariadb
+    image: mariadb:latest
+    env_file:
+      - .env
+    networks:
+      - mafiascum
+
+networks:
+  mafiascum:
