@@ -14,7 +14,7 @@ docker-compose up
 
 # Import the base schema (Do this on setup or if you want to reset)
 # Ensure your mariadb container is running beforehand
-./bootstrap_database.docker.compose.sh
+./bootstrap_database.docker_compose.sh
 ```
 
 ## MariaDB Console
@@ -23,7 +23,7 @@ docker-compose exec db sh -c 'exec mysql -h"$DB_HOST" -P"$DB_PORT" -u"$DB_USER" 
 ```
 
 
-# With Docker
+# With Docker (no Compose)
 This assumes your already have Docker installed. If you don't, go find a guide for installing on the OS you're using (The official docs will likely be helpful here).
 
 ## Running
