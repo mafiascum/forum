@@ -2,7 +2,9 @@ version: '2'
 services:
   app:
     container_name: app
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile-compose
     ports:
       - "17080:80"
     volumes:
