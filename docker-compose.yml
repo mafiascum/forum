@@ -19,7 +19,7 @@ services:
 
   db:
     container_name: mariadb
-    image: mariadb:latest
+    image: mariadb:10.2.8
     env_file:
       - .env
     networks:
