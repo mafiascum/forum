@@ -1,0 +1,29 @@
+version: '2'
+services:
+  app:
+    container_name: app
+    build:
+      context: .
+      dockerfile: Dockerfile-compose
+    ports:
+      - "17080:80"
+    volumes:
+      - .:/var/www/html/
+      - ./config.php.docker:/var/www/html/config.php
+    env_file:
+      - .env
+    depends_on:
+      - db
+    networks:
+      - mafiascum
+
+  db:
+    container_name: mariadb
+    image: mariadb:10.2.8
+    env_file:
+      - .env
+    networks:
+      - mafiascum
+
+networks:
+  mafiascum:
