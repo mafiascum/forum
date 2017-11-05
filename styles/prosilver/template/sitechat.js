@@ -866,8 +866,8 @@ var siteChat = (function() {
 		for(var messageKey in messageKeyToDataMap) {
 			var $messages = messageKeyToDataMap[messageKey]["messages"];
 			var $outputBuffer = messageKeyToDataMap[messageKey]["outputBuffer"];
-			var isScrolledToBottom = $outputBuffer.length > 0 && $outputBuffer.get(0).scrollTop == ($outputBuffer.get(0).scrollHeight - $outputBuffer.get(0).offsetHeight);
-			
+			var isScrolledToBottom = $outputBuffer.length > 0 && Math.floor($outputBuffer.get(0).scrollTop) == (Math.floor($outputBuffer.get(0).scrollHeight) - Math.floor($outputBuffer.get(0).offsetHeight));
+
 			var $messageDomElements = $(messageKeyToDataMap[messageKey]["messagesHtmlToAdd"].join(""));
 			
 			(prepend ? $messages.prepend : $messages.append).bind($messages)($messageDomElements);
