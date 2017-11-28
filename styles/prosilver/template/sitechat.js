@@ -30,15 +30,14 @@ var siteChat = (function() {
 		"<": "&lt;",
 		">": "&gt;",
 		'"': '&quot;',
-		"'": '&#39;',
-		"/": '&#x2F;'
+		"'": '&#39;'
 
 		//Needs to resolve conflicts with ;) emoji
 		//If this section was changed - apply it in resolveEmoji() as well
 	};
 
 	function escapeHtml(string) {
-		return String(string).replace(/[&<>"'\/]/g, function (s) {
+		return String(string).replace(/[&<>"']/g, function (s) {
 			return htmlEntityMap[s];
 		});
 	}
@@ -801,6 +800,7 @@ var siteChat = (function() {
 		var shouldDelayAvatarLoad = siteChat.shouldDelayAvatarLoad(avatarUrl);
 		var imageHtml = shouldDelayAvatarLoad ? '' : siteChat.createAvatarImageHtml(avatarUrl);
 		var messageElementId = siteChat.getMessageElementId(siteChatConversationMessage.id);
+		var escapedMessage = escapeHtml(siteChatConversationMessage.message);
 
 		if(shouldDelayAvatarLoad) {
 			siteChat.delayGifConversion(
@@ -813,7 +813,7 @@ var siteChat = (function() {
 		return	'<div class="message' + (isIgnored ? ' ignored' : '') + '" data-user-id="' + siteChatUser.id + '" id="' + messageElementId + '">'
 			+	'	<a class="compact-invisible" href="' + siteChat.rootPath + '/memberlist.php?mode=viewprofile&u=' + siteChatUser.id + '"><div class="avatar-container">' + imageHtml + '</div></a>'
 			+	'	<span class="compact-visible medium-font">[' + messageDateString + ']</span> <span class="messageUserName"><a class="dynamic-color" style="' + siteChat.getUserColorStyle(siteChatUser) + '" href="' + siteChat.getProfileUrl(siteChatUser) + '">' + siteChatUser.name + '</a></span><span class="compact-visible medium-font">:</span> <span class="messageTimestamp compact-invisible">(' + messageDateString + ')</span>'
-			+	'	<div class="messagecontent">' + (isEmoji ? siteChat.parseBBCode(siteChatConversationMessage.message) : siteChat.parseEmoji(siteChat.parseBBCode(siteChatConversationMessage.message))) + '</div>'
+			+	'	<div class="messagecontent">' + (isEmoji ? siteChat.parseBBCode(escapedMessage) : siteChat.parseEmoji(siteChat.parseBBCode(escapedMessage))) + '</div>'
 			+	'</div>'
 	};
 
