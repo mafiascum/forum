@@ -477,7 +477,6 @@ var siteChat = (function() {
 	};
 
 	siteChat.handleEmojiClick = function(event) {
-		console.log("Emoji click");
 		event.preventDefault();
 		event.stopPropagation();
 
