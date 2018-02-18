@@ -343,6 +343,11 @@
 	text-align: center;
 }
 
+.chatWindow .emojiIcon:hover
+{
+	cursor: pointer;
+}
+
 .chatWindow.collapsed .emojiIcon
 {
 	display: none;
@@ -405,6 +410,8 @@
 	padding: 0 3px 0 3px;
 	border-left: 0px;
 	border-right:0px;
+	border-top: 1px solid #000;
+	border-bottom: 1px solid #000;
 	cursor: text;
 	resize: none;
 }
