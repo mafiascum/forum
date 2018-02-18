@@ -477,15 +477,16 @@ var siteChat = (function() {
 	};
 
 	siteChat.handleEmojiClick = function(event) {
+		console.log("Emoji click");
 		event.preventDefault();
 		event.stopPropagation();
 
 		var $this = $(this);
 		var $chatWindow = $this.closest(".chatWindow");
 		var $inputBuffer = $chatWindow.find(".inputBuffer");
-
 		var emojiString = $this.text();
-		$inputBuffer.append(emojiString);
+
+		$inputBuffer.val($inputBuffer.val() + emojiString);
 	};
 
 	siteChat.handleWindowTitleClick = function(event) {
