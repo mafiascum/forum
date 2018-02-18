@@ -82,7 +82,7 @@ var siteChat = (function() {
 			this.blinking = false;
 		};
 	}
-
+	
 	siteChat.tryReconnect = true;
 	siteChat.chatWindows = {};//Associative array
 	siteChat.userMap = {};//Associative array
@@ -108,7 +108,8 @@ var siteChat = (function() {
 	siteChat.avatarContext = siteChat.avatarCanvas.getContext("2d");
 	siteChat.notifications = [];
 	siteChat.panelCompact = false;
-
+	siteChat.emojis = ["😀","😁","😂","🤣","😃","😄","😅","😆","😉","😊","😋","😎","😍","😘","😗","😙","😚","☺️","🙂","🤗","🤩","🤔","🤨","😐","😑","😶","🙄","😏","😣","😥","😮","🤐","😯","😪","😫","😴","😌","😛","😜","😝","🤤","😒","😓","😔","😕","🙃","🤑","😲","☹️","🙁","😖","😞","😟","😤","😢","😭","😦","😧","😨","😩","🤯","😬","😰","😱","😳","🤪","😵","😡","😠","🤬","😷","🤒","🤕","🤢","🤮","🤧","😇","🤠","🤡","🤥","🤫","🤭","🧐","🤓","😈","👿","👹","👺","💀","👻","👽","🤖","💩","😺","😸","😹","😻","😼","😽","🙀","😿","😾","👶","👦","👧","👨","👩","👴","👵","👨‍⚕️","👩‍⚕️","👨‍🎓","👩‍🎓","👨‍⚖️","👩‍⚖️","👨‍🌾","👩‍🌾","👨‍🍳","👩‍🍳","👨‍🔧","👩‍🔧","👨‍🏭","👩‍🏭","👨‍💼","👩‍💼","👨‍🔬","👩‍🔬","👨‍💻","👩‍💻","👨‍🎤","👩‍🎤","👨‍🎨","👩‍🎨","👨‍✈️","👩‍✈️","👨‍🚀","👩‍🚀","👨‍🚒","👩‍🚒","👮","👮‍♂️","👮‍♀️","🕵","🕵️‍♂️","🕵️‍♀️","💂","💂‍♂️","💂‍♀️","👷","👷‍♂️","👷‍♀️","🤴","👸","👳","👳‍♂️","👳‍♀️","👲","🧕","🧔","👱","👱‍♂️","👱‍♀️","🤵","👰","🤰","🤱","👼","🎅","🤶","🧙‍♀️","🧙‍♂️","🧚‍♀️","🧚‍♂️","🧛‍♀️","🧛‍♂️","🧜‍♀️","🧜‍♂️","🧝‍♀️","🧝‍♂️","🧞‍♀️","🧞‍♂️","🧟‍♀️","🧟‍♂️","🙍","🙍‍♂️","🙍‍♀️","🙎","🙎‍♂️","🙎‍♀️","🙅","🙅‍♂️","🙅‍♀️","🙆","🙆‍♂️","🙆‍♀️","💁","💁‍♂️","💁‍♀️","🙋","🙋‍♂️","🙋‍♀️","🙇","🙇‍♂️","🙇‍♀️","🤦","🤦‍♂️","🤦‍♀️","🤷","🤷‍♂️","🤷‍♀️","💆","💆‍♂️","💆‍♀️","💇","💇‍♂️","💇‍♀️","🚶","🚶‍♂️","🚶‍♀️","🏃","🏃‍♂️","🏃‍♀️","💃","🕺","👯","👯‍♂️","👯‍♀️","🧖‍♀️","🧖‍♂️","🕴","🗣","👤","👥","👫","👬","👭","💏","👨‍❤️‍💋‍👨","👩‍❤️‍💋‍👩","💑","👨‍❤️‍👨","👩‍❤️‍👩","👪","👨‍👩‍👦","👨‍👩‍👧","👨‍👩‍👧‍👦","👨‍👩‍👦‍👦","👨‍👩‍👧‍👧","👨‍👨‍👦","👨‍👨‍👧","👨‍👨‍👧‍👦","👨‍👨‍👦‍👦","👨‍👨‍👧‍👧","👩‍👩‍👦","👩‍👩‍👧","👩‍👩‍👧‍👦","👩‍👩‍👦‍👦","👩‍👩‍👧‍👧","👨‍👦","👨‍👦‍👦","👨‍👧","👨‍👧‍👦","👨‍👧‍👧","👩‍👦","👩‍👦‍👦","👩‍👧","👩‍👧‍👦","👩‍👧‍👧","🤳","💪","👈","👉","☝️","👆","🖕","👇","✌️","🤞","🖖","🤘","🖐","✋","👌","👍","👎","✊","👊","🤛","🤜","🤚","👋","🤟","✍️","👏","👐","🙌","🤲","🙏","🤝","💅","👂","👃","👣","👀","👁","🧠","👅","👄","💋"];
+	
 	siteChat.roomListRoomTemplate = Handlebars.compile(
 		'<div id="chatroom{{roomId}}">'
 		+		'<div class="roomtitle">'
@@ -155,7 +156,10 @@ var siteChat = (function() {
 		+					'<a href="#" class="loadMore">Load More Messages</a>'
 		+					'<div class="messages"></div>'
 		+				'</div>'
-		+				'<textarea class="inputBuffer" name="input" style="height:20px;"></textarea>'
+		+				'<div class="inputBufferContainer">'
+		+					'<textarea class="inputBuffer" name="input" style="height:20px;"></textarea>'
+		+					'<div class="emojiIcon">😀<div class="emojiPicker hidden"></div></div>'
+		+				'</div>'
 		+			'</div>'
 		+		'</div>'
 		+	'</div>'
@@ -464,17 +468,44 @@ var siteChat = (function() {
 			siteChat.createChatWindow(null, recipientUserId, null, $(this).data("username"), [], true, [], true, null, null, null, null, true);
 	};
 
+	siteChat.handleEmojiIconClick = function(event) {
+		event.preventDefault();
+		event.stopPropagation();
+		var $this = $(this);
+		$this.find(".emojiPicker").toggleClass("hidden");
+	};
+
+	siteChat.handleEmojiPickerClick = function(event) {
+		event.preventDefault();
+		event.stopPropagation();
+	};
+
+	siteChat.handleEmojiClick = function(event) {
+		event.preventDefault();
+		event.stopPropagation();
+
+		var $this = $(this);
+		var $chatWindow = $this.closest(".chatWindow");
+		var $inputBuffer = $chatWindow.find(".inputBuffer");
+
+		var emojiString = $this.text();
+		$inputBuffer.append(emojiString);
+		
+	};
 
 	siteChat.handleWindowTitleClick = function(event) {
 		event.preventDefault();
 		event.stopPropagation();
 		var $window = $(this).closest(".chatWindow");
 		var $title = $window.find(".title");
+		var $emojiPicker = $window.find(".emojiPicker");
 		var chatWindow = siteChat.chatWindows[ siteChat.getWindowMapKeyFromDomObject($window) ];
 
 		if (chatWindow)
 			chatWindow.stopBlinking();
 		$title.removeClass("backgroundColorTransition");
+
+		$emojiPicker.addClass("hidden");
 
 		if($window.hasClass("expanded")) {
 			$window.removeClass("expanded").addClass("collapsed");
@@ -654,6 +685,24 @@ var siteChat = (function() {
 		return siteChat.onlineUserIdSet.some(function(innerUserId) { return innerUserId == userId; });
 	};
 
+	siteChat.populateEmojiPicker = function($chatWindow)
+	{
+		var $picker = $chatWindow.find(".emojiPicker");
+		var emojiHtml = "";
+		var $div = $("<div></div>");
+		var $span = $("<span class='emoji'></span>");
+		$div.append($span);
+
+		siteChat.emojis.forEach(function(emojiString) {
+			
+			$span.text(emojiString);
+			
+			emojiHtml += $div.html();
+		});
+
+		$picker.html(emojiHtml);
+	};
+
 	siteChat.createChatWindow = function(conversationId, recipientUserId, createdByUserId, title, userIdSet, expanded, messages, save, blinking, width, height, authCode, focus) {
 
 		var chatWindowIdPrefix = (conversationId != null ? "C" : "P");
@@ -686,6 +735,8 @@ var siteChat = (function() {
 		var $inputBuffer = $chatWindow.find(".inputBuffer");
 		var $outputBuffer = $chatWindow.find(".outputBuffer");
 		var $title = $chatWindow.find(".title");
+
+		siteChat.populateEmojiPicker($chatWindow);
 
 		//Window defaults to an expanded state so autogrow can see the proper CSS values.
 		$inputBuffer.autoGrow();
@@ -1652,6 +1703,9 @@ var siteChat = (function() {
 			$password.focus();
 		});
 
+		$(document).on("click", "#chatPanel .emojiIcon", siteChat.handleEmojiIconClick);
+		$(document).on("click", "#chatPanel .emojiPicker", siteChat.handleEmojiPickerClick);
+		$(document).on("click", "#chatPanel .emoji", siteChat.handleEmojiClick);
 		$(document).on("click", "#chatPanel .chatWindow .title", siteChat.handleWindowTitleClick);
 		$(document).on("click", "#chatPanel .chatWindow .title .close", siteChat.handleWindowCloseButtonClick);
 		$(document).on("keypress", "#chatPanel .chatWindow .inputBuffer", siteChat.handleWindowInputSubmission);

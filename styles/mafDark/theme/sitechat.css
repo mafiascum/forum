@@ -277,11 +277,24 @@
 
 
 /*** Input Buffer ***/
+.chatWindow .inputBufferContainer
+{
+	display: flex;
+	flex-direction: row;
+}
+
+.chatWindow .emojiIcon
+{
+	width: 40px;
+	background-color:red;
+}
+
 .chatWindow .inputBuffer
 {
 	font-size: 11px !important; /* Important: This must be here for autogrow! */
 	line-height: 20px;
 	width: 100%;
+	flex-grow: 1;
 }
 
 .chatWindow.collapsed .inputBuffer
