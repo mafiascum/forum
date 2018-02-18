@@ -158,7 +158,8 @@ var siteChat = (function() {
 		+				'</div>'
 		+				'<div class="inputBufferContainer">'
 		+					'<textarea class="inputBuffer" name="input" style="height:20px;"></textarea>'
-		+					'<div class="emojiIcon">😀<div class="emojiPicker hidden"></div></div>'
+		+					'<div class="emojiIcon">😀</div>'
+		+					'<div class="emojiPicker hidden"></div>'
 		+				'</div>'
 		+			'</div>'
 		+		'</div>'
@@ -472,12 +473,7 @@ var siteChat = (function() {
 		event.preventDefault();
 		event.stopPropagation();
 		var $this = $(this);
-		$this.find(".emojiPicker").toggleClass("hidden");
-	};
-
-	siteChat.handleEmojiPickerClick = function(event) {
-		event.preventDefault();
-		event.stopPropagation();
+		$this.closest(".chatWindow").find(".emojiPicker").toggleClass("hidden");
 	};
 
 	siteChat.handleEmojiClick = function(event) {
@@ -490,7 +486,6 @@ var siteChat = (function() {
 
 		var emojiString = $this.text();
 		$inputBuffer.append(emojiString);
-		
 	};
 
 	siteChat.handleWindowTitleClick = function(event) {
@@ -1704,7 +1699,6 @@ var siteChat = (function() {
 		});
 
 		$(document).on("click", "#chatPanel .emojiIcon", siteChat.handleEmojiIconClick);
-		$(document).on("click", "#chatPanel .emojiPicker", siteChat.handleEmojiPickerClick);
 		$(document).on("click", "#chatPanel .emoji", siteChat.handleEmojiClick);
 		$(document).on("click", "#chatPanel .chatWindow .title", siteChat.handleWindowTitleClick);
 		$(document).on("click", "#chatPanel .chatWindow .title .close", siteChat.handleWindowCloseButtonClick);
