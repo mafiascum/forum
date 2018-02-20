@@ -335,6 +335,11 @@
 	flex-direction: row;
 }
 
+.chatWindow .outputBuffer .emoji
+{
+	font-size: 16px;
+}
+
 .chatWindow .emojiIcon
 {
 	width: 30px;
