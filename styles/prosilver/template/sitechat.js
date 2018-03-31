@@ -30,15 +30,14 @@ var siteChat = (function() {
 		"<": "&lt;",
 		">": "&gt;",
 		'"': '&quot;',
-		"'": '&#39;',
-		"/": '&#x2F;'
+		"'": '&#39;'
 
 		//Needs to resolve conflicts with ;) emoji
 		//If this section was changed - apply it in resolveEmoji() as well
 	};
 
 	function escapeHtml(string) {
-		return String(string).replace(/[&<>"'\/]/g, function (s) {
+		return String(string).replace(/[&<>"']/g, function (s) {
 			return htmlEntityMap[s];
 		});
 	}
@@ -83,7 +82,7 @@ var siteChat = (function() {
 			this.blinking = false;
 		};
 	}
-
+	
 	siteChat.tryReconnect = true;
 	siteChat.chatWindows = {};//Associative array
 	siteChat.userMap = {};//Associative array
@@ -109,7 +108,8 @@ var siteChat = (function() {
 	siteChat.avatarContext = siteChat.avatarCanvas.getContext("2d");
 	siteChat.notifications = [];
 	siteChat.panelCompact = false;
-
+	siteChat.emojis = ["😀","😁","😂","🤣","😃","😄","😅","😆","😉","😊","😋","😎","😍","😘","😗","😙","😚","☺️","🙂","🤗","🤩","🤔","🤨","😐","😑","😶","🙄","😏","😣","😥","😮","🤐","😯","😪","😫","😴","😌","😛","😜","😝","🤤","😒","😓","😔","😕","🙃","🤑","😲","☹️","🙁","😖","😞","😟","😤","😢","😭","😦","😧","😨","😩","🤯","😬","😰","😱","😳","🤪","😵","😡","😠","🤬","😷","🤒","🤕","🤢","🤮","🤧","😇","🤠","🤡","🤥","🤫","🤭","🧐","🤓","😈","👿","👹","👺","💀","👻","👽","🤖","💩","😺","😸","😹","😻","😼","😽","🙀","😿","😾","👶","👦","👧","👨","👩","👴","👵","👨‍⚕️","👩‍⚕️","👨‍🎓","👩‍🎓","👨‍⚖️","👩‍⚖️","👨‍🌾","👩‍🌾","👨‍🍳","👩‍🍳","👨‍🔧","👩‍🔧","👨‍🏭","👩‍🏭","👨‍💼","👩‍💼","👨‍🔬","👩‍🔬","👨‍💻","👩‍💻","👨‍🎤","👩‍🎤","👨‍🎨","👩‍🎨","👨‍✈️","👩‍✈️","👨‍🚀","👩‍🚀","👨‍🚒","👩‍🚒","👮","👮‍♂️","👮‍♀️","🕵","🕵️‍♂️","🕵️‍♀️","💂","💂‍♂️","💂‍♀️","👷","👷‍♂️","👷‍♀️","🤴","👸","👳","👳‍♂️","👳‍♀️","👲","🧕","🧔","👱","👱‍♂️","👱‍♀️","🤵","👰","🤰","🤱","👼","🎅","🤶","🧙‍♀️","🧙‍♂️","🧚‍♀️","🧚‍♂️","🧛‍♀️","🧛‍♂️","🧜‍♀️","🧜‍♂️","🧝‍♀️","🧝‍♂️","🧞‍♀️","🧞‍♂️","🧟‍♀️","🧟‍♂️","🙍","🙍‍♂️","🙍‍♀️","🙎","🙎‍♂️","🙎‍♀️","🙅","🙅‍♂️","🙅‍♀️","🙆","🙆‍♂️","🙆‍♀️","💁","💁‍♂️","💁‍♀️","🙋","🙋‍♂️","🙋‍♀️","🙇","🙇‍♂️","🙇‍♀️","🤦","🤦‍♂️","🤦‍♀️","🤷","🤷‍♂️","🤷‍♀️","💆","💆‍♂️","💆‍♀️","💇","💇‍♂️","💇‍♀️","🚶","🚶‍♂️","🚶‍♀️","🏃","🏃‍♂️","🏃‍♀️","💃","🕺","👯","👯‍♂️","👯‍♀️","🧖‍♀️","🧖‍♂️","🕴","🗣","👤","👥","👫","👬","👭","💏","👨‍❤️‍💋‍👨","👩‍❤️‍💋‍👩","💑","👨‍❤️‍👨","👩‍❤️‍👩","👪","👨‍👩‍👦","👨‍👩‍👧","👨‍👩‍👧‍👦","👨‍👩‍👦‍👦","👨‍👩‍👧‍👧","👨‍👨‍👦","👨‍👨‍👧","👨‍👨‍👧‍👦","👨‍👨‍👦‍👦","👨‍👨‍👧‍👧","👩‍👩‍👦","👩‍👩‍👧","👩‍👩‍👧‍👦","👩‍👩‍👦‍👦","👩‍👩‍👧‍👧","👨‍👦","👨‍👦‍👦","👨‍👧","👨‍👧‍👦","👨‍👧‍👧","👩‍👦","👩‍👦‍👦","👩‍👧","👩‍👧‍👦","👩‍👧‍👧","🤳","💪","👈","👉","☝️","👆","🖕","👇","✌️","🤞","🖖","🤘","🖐","✋","👌","👍","👎","✊","👊","🤛","🤜","🤚","👋","🤟","✍️","👏","👐","🙌","🤲","🙏","🤝","💅","👂","👃","👣","👀","👁","🧠","👅","👄","💋","👓","🕶","👔","👕","👖","🧣","🧤","🧥","🧦","👗","👘","👙","👚","👛","👜","👝","🎒","👞","👟","👠","👡","👢","👑","👒","🎩","🎓","🧢","⛑","💄","💍","🌂","💼","🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐨","🐯","🦁","🐮","🐷","🐽","🐸","🐵","🙊","🙉","🙊","🐒","🐔","🐧","🐦","🐤","🐣","🐥","🦆","🦅","🦉","🦇","🐺","🐗","🐴","🦄","🐝","🐛","🦋","🐌","🐚","🐞","🐜","🕷","🕸","🐢","🐍","🦎","🦂","🦀","🦑","🐙","🦐","🐠","🐟","🐡","🐬","🦈","🐳","🐋","🐊","🐆","🐅","🐃","🐂","🐄","🦌","🐪","🐫","🐘","🦏","🦍","🐎","🐖","🐐","🐏","🐑","🐕","🐩","🐈","🐓","🦃","🕊","🐇","🐁","🐀","🐿","🐾","🐉","🐲","🌵","🎄","🌲","🌳","🌴","🌱","🌿","☘️","🍀","🎍","🎋","🍃","🍂","🍁","🍄","🌾","💐","🌷","🌹","🥀","🌻","🌼","🌸","🌺","🌎","🌍","🌏","🌕","🌖","🌗","🌘","🌑","🌒","🌓","🌔","🌚","🌝","🌞","🌛","🌜","🌙","💫","⭐️","🌟","✨","⚡️","🔥","💥","☄️","☀️","🌤","⛅️","🌥","🌦","🌈","☁️","🌧","⛈","🌩","🌨","☃️","⛄️","❄️","🌬","💨","🌪","🌫","🌊","💧","💦","☔️","🍏","🍎","🍐","🍊","🍋","🍌","🍉","🍇","🍓","🍈","🍒","🍑","🍍","🥝","🥑","🍅","🍆","🥒","🥕","🌽","🌶","🥔","🍠","🌰","🥜","🍯","🥐","🍞","🥖","🧀","🥚","🍳","🥓","🥞","🍤","🍗","🍖","🍕","🌭","🍔","🍟","🥙","🌮","🌯","🥗","🥘","🍝","🍜","🍲","🍥","🍣","🍱","🍛","🍚","🍙","🍘","🍢","🍡","🍧","🍨","🍦","🍰","🎂","🍮","🍭","🍬","🍫","🍿","🍩","🍪","🥛","🍼","☕️","🍵","🍶","🍺","🍻","🥂","🍷","🥃","🍸","🍹","🍾","🥄","🍴","🍽","⚽️","🏀","🏈","⚾️","🎾","🏐","🏉","🎱","🏓","🏸","🥅","🏒","🏑","🏏","⛳️","🏹","🎣","🥊","🥋","⛸","🎿","⛷","🏂","🏋️‍♀️","🏋️","🤺","🤼‍♀️","🤼‍♂️","🤸‍♀️","🤸‍♂️","⛹️‍♀️","⛹️","🤾‍♀️","🤾‍♂️","🏌️‍♀️","🏌️","🏄‍♀️","🏄","🏊‍♀️","🏊","🤽‍♀️","🤽‍♂️","🚣‍♀️","🚣","🏇","🚴‍♀️","🚴","🚵‍♀️","🚵","🎽","🏅","🎖","🥇","🥈","🥉","🏆","🏵","🎗","🎫","🎟","🎪","🤹‍♀️","🤹‍♂️","🎭","🎨","🎬","🎤","🎧","🎼","🎹","🥁","🎷","🎺","🎸","🎻","🎲","🎯","🎳","🎮","🎰","🚗","🚕","🚙","🚌","🚎","🏎","🚓","🚑","🚒","🚐","🚚","🚛","🚜","🛴","🚲","🛵","🏍","🚨","🚔","🚍","🚘","🚖","🚡","🚠","🚟","🚃","🚋","🚞","🚝","🚄","🚅","🚈","🚂","🚆","🚇","🚊","🚉","🚁","🛩","✈️","🛫","🛬","🚀","🛰","💺","🛶","⛵️","🛥","🚤","🛳","⛴","🚢","⚓️","🚧","⛽️","🚏","🚦","🚥","🗺","🗿","🗽","⛲️","🗼","🏰","🏯","🏟","🎡","🎢","🎠","⛱","🏖","🏝","⛰","🏔","🗻","🌋","🏜","🏕","⛺️","🛤","🛣","🏗","🏭","🏠","🏡","🏘","🏚","🏢","🏬","🏣","🏤","🏥","🏦","🏨","🏪","🏫","🏩","💒","🏛","⛪️","🕌","🕍","🕋","⛩","🗾","🎑","🏞","🌅","🌄","🌠","🎇","🎆","🌇","🌆","🏙","🌃","🌌","🌉","🌁","⌚️","📱","📲","💻","⌨️","🖥","🖨","🖱","🖲","🕹","🗜","💽","💾","💿","📀","📼","📷","📸","📹","🎥","📽","🎞","📞","☎️","📟","📠","📺","📻","🎙","🎚","🎛","⏱","⏲","⏰","🕰","⌛️","⏳","📡","🔋","🔌","💡","🔦","🕯","🗑","🛢","💸","💵","💴","💶","💷","💰","💳","💎","⚖️","🔧","🔨","⚒","🛠","⛏","🔩","⚙️","⛓","🔫","💣","🔪","🗡","⚔️","🛡","🚬","⚰️","⚱️","🏺","🔮","📿","💈","⚗️","🔭","🔬","🕳","💊","💉","🌡","🚽","🚰","🚿","🛁","🛀","🛎","🔑","🗝","🚪","🛋","🛏","🛌","🖼","🛍","🛒","🎁","🎈","🎏","🎀","🎊","🎉","🎎","🏮","🎐","✉️","📩","📨","📧","💌","📥","📤","📦","🏷","📪","📫","📬","📭","📮","📯","📜","📃","📄","📑","📊","📈","📉","🗒","🗓","📆","📅","📇","🗃","🗳","🗄","📋","📁","📂","🗂","🗞","📰","📓","📔","📒","📕","📗","📘","📙","📚","📖","🔖","🔗","📎","🖇","📐","📏","📌","📍","📌","🎌","🏳️","🏴","🏁","🏳️‍🌈","✂️","🖊","🖋","✒️","🖌","🖍","📝","✏️","🔍","🔎","🔏","🔐","🔒","🔓"];
+	
 	siteChat.roomListRoomTemplate = Handlebars.compile(
 		'<div id="chatroom{{roomId}}">'
 		+		'<div class="roomtitle">'
@@ -156,7 +156,11 @@ var siteChat = (function() {
 		+					'<a href="#" class="loadMore">Load More Messages</a>'
 		+					'<div class="messages"></div>'
 		+				'</div>'
-		+				'<textarea class="inputBuffer" name="input" style="height:20px;"></textarea>'
+		+				'<div class="inputBufferContainer">'
+		+					'<textarea class="inputBuffer" name="input" style="height:20px;"></textarea>'
+		+					'<div class="emojiIcon">😀</div>'
+		+					'<div class="emojiPicker hidden"></div>'
+		+				'</div>'
 		+			'</div>'
 		+		'</div>'
 		+	'</div>'
@@ -362,6 +366,9 @@ var siteChat = (function() {
 				else
 					url = str;
 				return siteChat.chatAnchorTemplate({url: url, display: str});
+			})
+			.replace(/(?:[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|[\ud83c[\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|[\ud83c[\ude32-\ude3a]|[\ud83c[\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26FF]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])/g, function(str) {
+				return "<span class='emoji'>" + str + "</span>";
 			});
 	};
 	
@@ -465,17 +472,50 @@ var siteChat = (function() {
 			siteChat.createChatWindow(null, recipientUserId, null, $(this).data("username"), [], true, [], true, null, null, null, null, true);
 	};
 
+	siteChat.handleEmojiIconClick = function(event) {
+		event.preventDefault();
+		event.stopPropagation();
+		var $this = $(this);
+		$this.closest(".chatWindow").find(".emojiPicker").toggleClass("hidden");
+	};
+
+	siteChat.handleEmojiPickerClick = function(event) {
+		event.preventDefault();
+		event.stopPropagation();
+	};
+
+	siteChat.handleEmojiClick = function(event) {
+		event.preventDefault();
+		event.stopPropagation();
+
+		var $this = $(this);
+		var $chatWindow = $this.closest(".chatWindow");
+		var $inputBuffer = $chatWindow.find(".inputBuffer");
+		var emojiString = $this.text();
+
+		$inputBuffer.val($inputBuffer.val() + emojiString);
+	};
+
+	siteChat.handleDocumentClick = function(event) {
+		//event.preventDefault();
+		//event.stopPropagation();
+		var $this = $(this);
+		$this.find(".emojiPicker").addClass("hidden");
+	}
 
 	siteChat.handleWindowTitleClick = function(event) {
 		event.preventDefault();
 		event.stopPropagation();
 		var $window = $(this).closest(".chatWindow");
 		var $title = $window.find(".title");
+		var $emojiPicker = $window.find(".emojiPicker");
 		var chatWindow = siteChat.chatWindows[ siteChat.getWindowMapKeyFromDomObject($window) ];
 
 		if (chatWindow)
 			chatWindow.stopBlinking();
 		$title.removeClass("backgroundColorTransition");
+
+		$emojiPicker.addClass("hidden");
 
 		if($window.hasClass("expanded")) {
 			$window.removeClass("expanded").addClass("collapsed");
@@ -655,6 +695,24 @@ var siteChat = (function() {
 		return siteChat.onlineUserIdSet.some(function(innerUserId) { return innerUserId == userId; });
 	};
 
+	siteChat.populateEmojiPicker = function($chatWindow)
+	{
+		var $picker = $chatWindow.find(".emojiPicker");
+		var emojiHtml = "";
+		var $div = $("<div></div>");
+		var $span = $("<span class='emoji'></span>");
+		$div.append($span);
+
+		siteChat.emojis.forEach(function(emojiString) {
+			
+			$span.text(emojiString);
+			
+			emojiHtml += $div.html();
+		});
+
+		$picker.html(emojiHtml);
+	};
+
 	siteChat.createChatWindow = function(conversationId, recipientUserId, createdByUserId, title, userIdSet, expanded, messages, save, blinking, width, height, authCode, focus) {
 
 		var chatWindowIdPrefix = (conversationId != null ? "C" : "P");
@@ -687,6 +745,8 @@ var siteChat = (function() {
 		var $inputBuffer = $chatWindow.find(".inputBuffer");
 		var $outputBuffer = $chatWindow.find(".outputBuffer");
 		var $title = $chatWindow.find(".title");
+
+		siteChat.populateEmojiPicker($chatWindow);
 
 		//Window defaults to an expanded state so autogrow can see the proper CSS values.
 		$inputBuffer.autoGrow();
@@ -801,6 +861,7 @@ var siteChat = (function() {
 		var shouldDelayAvatarLoad = siteChat.shouldDelayAvatarLoad(avatarUrl);
 		var imageHtml = shouldDelayAvatarLoad ? '' : siteChat.createAvatarImageHtml(avatarUrl);
 		var messageElementId = siteChat.getMessageElementId(siteChatConversationMessage.id);
+		var escapedMessage = escapeHtml(siteChatConversationMessage.message);
 
 		if(shouldDelayAvatarLoad) {
 			siteChat.delayGifConversion(
@@ -813,7 +874,7 @@ var siteChat = (function() {
 		return	'<div class="message' + (isIgnored ? ' ignored' : '') + '" data-user-id="' + siteChatUser.id + '" id="' + messageElementId + '">'
 			+	'	<a class="compact-invisible" href="' + siteChat.rootPath + '/memberlist.php?mode=viewprofile&u=' + siteChatUser.id + '"><div class="avatar-container">' + imageHtml + '</div></a>'
 			+	'	<span class="compact-visible medium-font">[' + messageDateString + ']</span> <span class="messageUserName"><a class="dynamic-color" style="' + siteChat.getUserColorStyle(siteChatUser) + '" href="' + siteChat.getProfileUrl(siteChatUser) + '">' + siteChatUser.name + '</a></span><span class="compact-visible medium-font">:</span> <span class="messageTimestamp compact-invisible">(' + messageDateString + ')</span>'
-			+	'	<div class="messagecontent">' + (isEmoji ? siteChat.parseBBCode(siteChatConversationMessage.message) : siteChat.parseEmoji(siteChat.parseBBCode(siteChatConversationMessage.message))) + '</div>'
+			+	'	<div class="messagecontent">' + (isEmoji ? siteChat.parseBBCode(escapedMessage) : siteChat.parseEmoji(siteChat.parseBBCode(escapedMessage))) + '</div>'
 			+	'</div>'
 	};
 
@@ -866,8 +927,8 @@ var siteChat = (function() {
 		for(var messageKey in messageKeyToDataMap) {
 			var $messages = messageKeyToDataMap[messageKey]["messages"];
 			var $outputBuffer = messageKeyToDataMap[messageKey]["outputBuffer"];
-			var isScrolledToBottom = $outputBuffer.length > 0 && $outputBuffer.get(0).scrollTop == ($outputBuffer.get(0).scrollHeight - $outputBuffer.get(0).offsetHeight);
-			
+			var isScrolledToBottom = $outputBuffer.length > 0 && Math.round($outputBuffer.get(0).scrollTop) >= ($outputBuffer.get(0).scrollHeight - $outputBuffer.get(0).offsetHeight);
+
 			var $messageDomElements = $(messageKeyToDataMap[messageKey]["messagesHtmlToAdd"].join(""));
 			
 			(prepend ? $messages.prepend : $messages.append).bind($messages)($messageDomElements);
@@ -1652,11 +1713,15 @@ var siteChat = (function() {
 			$password.focus();
 		});
 
+		$(document).on("click", siteChat.handleDocumentClick);
+		$(document).on("click", "#chatPanel .emojiIcon", siteChat.handleEmojiIconClick);
+		$(document).on("click", "#chatPanel .emojiPicker", siteChat.handleEmojiPickerClick);
+		$(document).on("click", "#chatPanel .emoji", siteChat.handleEmojiClick);
 		$(document).on("click", "#chatPanel .chatWindow .title", siteChat.handleWindowTitleClick);
 		$(document).on("click", "#chatPanel .chatWindow .title .close", siteChat.handleWindowCloseButtonClick);
 		$(document).on("keypress", "#chatPanel .chatWindow .inputBuffer", siteChat.handleWindowInputSubmission);
 		$(document).on("click", ".sc-user-window-init", siteChat.handleUserListUsernameClick);
-		$(document).on("mousewheel", "#onlinelistcontainer, #chatPanel .outputBuffer, #roomstab", function(e) {
+		$(document).on("mousewheel", "#onlinelistcontainer, #chatPanel .outputBuffer, #roomstab, #chatPanel .emojiPicker", function(e) {
 
 			var wheelDistance = function(evt){
 				if (!evt) evt = event;

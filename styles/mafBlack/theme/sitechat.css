@@ -319,11 +319,78 @@
 }
 
 /*** Input Buffer ***/
+.chatWindow .inputBufferContainer
+{
+	display: flex;
+	flex-direction: row;
+}
+
+.chatWindow .outputBuffer .emoji
+{
+	font-size: 16px;
+}
+
+.chatWindow .emojiIcon
+{
+	width: 30px;
+	background-color:#FFF;
+	border-top:1px solid #000;
+	border-bottom:1px solid #000;
+	font-size: 12px;
+	text-align: center;
+}
+
+.chatWindow .emojiIcon:hover
+{
+	cursor: pointer;
+}
+
+.chatWindow.collapsed .emojiIcon
+{
+	display: none;
+}
+
+.chatWindow .emojiPicker
+{
+	font-size: 25px;
+	width: 400px;
+	height: 300px;
+	background-color: #FFF;
+	position: absolute;
+	bottom: 23px;
+	right: 0px;
+	padding: 5px;
+	overflow-y: scroll;
+	overflow-x: hidden;
+}
+
+.chatWindow .emojiPicker.hidden
+{
+	display: none;
+}
+
+.chatWindow .emojiPicker .emoji
+{
+	display:inline-block;
+	width: 35px;
+	height: 35px;
+	margin-right: 10px;
+	margin-bottom:10px;
+	text-align: center;
+}
+
+.chatWindow .emojiPicker .emoji:hover
+{
+	cursor: pointer;
+}
+
 .chatWindow .inputBuffer
 {
 	font-size: 11px !important; /* Important: This must be here for autogrow! */
 	line-height: 20px;
 	width: 100%;
+	-webkit-flex-grow: 1;
+	flex-grow: 1;
 }
 
 .chatWindow.collapsed .inputBuffer
@@ -341,6 +408,8 @@
 	padding: 0 3px 0 3px;
 	border-left: 0px;
 	border-right:0px;
+	border-top: 1px solid #000;
+	border-bottom: 1px solid #000;
 	cursor: text;
 	resize: none;
 }

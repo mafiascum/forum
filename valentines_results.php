@@ -107,7 +107,7 @@ for ($i=0;$i<sizeOf($user_array);$i++){
 			
 		}
 	}
-	if ($their_total_weight[$their_id] > 0 && $my_total_weight[$their_id] > 0 && $question_match > 24){
+	if ($their_total_weight[$their_id] > 0 && $my_total_weight[$their_id] > 0 && $question_match >= 5){
 		$my_percent = $my_score[$their_id] / ($my_total_weight[$their_id]);
 		$their_percent = $their_score[$their_id]/($their_total_weight[$their_id]);
 		$finalscore = pow(($my_percent*$their_percent),1/2);
