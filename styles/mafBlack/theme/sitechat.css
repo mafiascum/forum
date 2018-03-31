@@ -339,6 +339,7 @@
 	border-bottom:1px solid #000;
 	font-size: 12px;
 	text-align: center;
+	cursor: pointer;
 }
 
 .chatWindow .emojiIcon:hover
@@ -378,6 +379,7 @@
 	margin-right: 10px;
 	margin-bottom:10px;
 	text-align: center;
+	cursor: pointer;
 }
 
 .chatWindow .emojiPicker .emoji:hover
