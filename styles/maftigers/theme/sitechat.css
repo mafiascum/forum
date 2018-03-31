@@ -48,6 +48,7 @@
 	height: 23px;
 	font-size: 12px !important;
 	font-weight: bold;
+	cursor: pointer;
 }
 
 .chatWindow .title:hover
