@@ -3002,6 +3002,14 @@ function login_box($redirect = '', $l_explain = '', $l_success = '', $admin = fa
 				return;
 			}
 
+			if($user->data['user_lastvisit'] == 0)
+			{
+				include($phpbb_root_path . 'includes/functions_wpm.' . $phpEx);
+				$wpm = new welcome_pm();
+				$wpm->get_vars();
+				$wpm->send_wpm();
+			}
+
 			$redirect = meta_refresh(3, $redirect);
 			trigger_error($message . '<br /><br />' . sprintf($l_redirect, '<a href="' . $redirect . '">', '</a>'));
 		}
