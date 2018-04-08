@@ -3002,7 +3002,7 @@ function login_box($redirect = '', $l_explain = '', $l_success = '', $admin = fa
 				return;
 			}
 
-			if($user->data['user_lastvisit'] == 0)
+			if($user->data['user_lastvisit'] == 0 && UserAltData::getAlts($user->data['user_id'])->isMain())
 			{
 				include($phpbb_root_path . 'includes/functions_wpm.' . $phpEx);
 				$wpm = new welcome_pm();

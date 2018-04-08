@@ -326,12 +326,18 @@ class ucp_register
 					$email_exp = explode('@', $data['email']);
 					$email_exp = '^'.$email_exp[0].'@';
 					$ip_exp = ($data['email'] == '') ? '^$' : '^'.$ip_set[0]. '.' . $ip_set[1] . '.' . $ip_set[2] . '.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$';
-					$sql = 'SELECT user_email, username, user_ip
+					$sql = 'SELECT user_email, username, user_ip, user_id, user_regdate, main_user_id
 						FROM ' . USERS_TABLE . '
+						LEFT JOIN ' . ALT_TABLE . ' ON user_id=main_user_id
 						WHERE user_email = "' . $db->sql_escape($data['email']) .'"
 						OR user_ip REGEXP "' . $ip_exp .'"
-						OR user_email REGEXP "' . $email_exp .'"';
+						OR user_email REGEXP "' . $email_exp .'"
+						ORDER BY user_regdate ASC, user_id ASC';
 					$result = $db->sql_query($sql);
+
+					$main_user_id = null;
+					$has_main_from_alt_table = false;
+
 					while ($row = $db->sql_fetchrow($result))
 					{
 						if($row['user_ip'] == $user->ip)
@@ -341,7 +347,23 @@ class ucp_register
 						if($row['user_email'] == $data['email'])
 						{
 							$email_ary[$row['username']] = $row['user_email'];
+							
+							if($main_user_id == null || (!$has_main_from_alt_table && !empty($row['main_user_id'])))
+							{
+								$main_user_id = $row['user_id'];
+
+								if(!empty($row['main_user_id']))
+									$has_main_from_alt_table = true;
+							}
 						}
+					}
+
+					if($main_user_id != null)
+					{
+						$altConfirmed = true;
+						$is_alt = 1;
+						$alt_main = $main_user_id;
+						$mainId = $main_user_id;
 					}
 
 					//If there are matches to the registering IP, check it.
@@ -384,7 +406,7 @@ class ucp_register
 				$sql = 'SELECT group_id
 					FROM ' . GROUPS_TABLE . "
 					WHERE group_name = '" . $db->sql_escape($group_name) . "'
-						AND group_type = " . GROUP_SPECIAL;
+					AND group_type = " . GROUP_SPECIAL;
 				$result = $db->sql_query($sql);
 				$row = $db->sql_fetchrow($result);
 				$db->sql_freeresult($result);
@@ -419,7 +441,8 @@ class ucp_register
 					$user_inactive_reason = 0;
 					$user_inactive_time = 0;
 				}
-				if($data['acc_type'] == 2 && $altConfirmed)
+
+				if($altConfirmed)
 				{
 					$is_alt = 1;
 					$alt_main = $mainId;
@@ -474,7 +497,7 @@ class ucp_register
 					$db->sql_query($sql);
 				}
 
-				if($emailFlag || $ipFlag || $passwordFlag)
+				if( ($emailFlag || $ipFlag || $passwordFlag) && !$altConfirmed )
 				{
 					group_user_add($config['potential_alt_user_group'], array($user_id));
 				}
