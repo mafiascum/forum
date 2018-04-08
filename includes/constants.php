@@ -286,6 +286,7 @@ define('USER_GROUP_TABLE',			$table_prefix . 'user_group');
 define('USERS_TABLE',				$table_prefix . 'users');
 define('WARNINGS_TABLE',			$table_prefix . 'warnings');
 define('WORDS_TABLE',				$table_prefix . 'words');
+define('WPM_TABLE',					$table_prefix . 'wpm');
 define('ZEBRA_TABLE',				$table_prefix . 'zebra');
 
 // Additional tables

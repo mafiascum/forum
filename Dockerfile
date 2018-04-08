@@ -1,4 +1,4 @@
-FROM php:5.6.30-apache
+FROM php:5.6.31-apache
 
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y imagemagick libpng-dev
